@@ -14,8 +14,6 @@ export function useRealtime({ table, event = '*', filter, onUpdate }: UseRealtim
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    console.log(`🔔 Setting up realtime for table: ${table}`);
-    
     // Configuration du channel realtime
     const channelName = `${table}-changes-${Date.now()}`;
     const realtimeChannel = supabase.channel(channelName);
@@ -33,18 +31,15 @@ export function useRealtime({ table, event = '*', filter, onUpdate }: UseRealtim
 
     realtimeChannel
       .on('postgres_changes', config, (payload) => {
-        console.log(`🔔 Realtime update for ${table}:`, payload);
         onUpdate?.(payload);
       })
       .subscribe((status) => {
-        console.log(`🔔 Realtime status for ${table}:`, status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
     setChannel(realtimeChannel);
 
     return () => {
-      console.log(`🧹 Cleaning up realtime for table: ${table}`);
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
       }

@@ -245,7 +245,6 @@ export const useAuditLogs = () => {
         schema: 'public',
         table: 'audit_logs'
       }, (payload) => {
-        console.log('Changement audit logs:', payload);
         fetchAuditLogs();
       })
       .subscribe();

@@ -65,7 +65,6 @@ export const useEmergencyCalls = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'vapi_calls' },
         (payload) => {
-          console.log('VAPI calls change:', payload);
           if (payload.eventType === 'INSERT') {
             setCalls(prev => [payload.new as any, ...prev]);
             toast.success("Nouvel appel", `${payload.new.customer_name} - ${payload.new.priority}`);

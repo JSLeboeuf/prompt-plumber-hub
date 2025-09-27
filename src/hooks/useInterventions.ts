@@ -247,7 +247,6 @@ export const useInterventions = () => {
         schema: 'public',
         table: 'interventions'
       }, (payload) => {
-        console.log('Changement interventions:', payload);
         fetchInterventions();
       })
       .subscribe();

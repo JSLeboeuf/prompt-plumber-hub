@@ -287,7 +287,6 @@ export const useSupportTickets = () => {
         schema: 'public',
         table: 'support_tickets'
       }, (payload) => {
-        console.log('Changement tickets:', payload);
         fetchTickets();
       })
       .subscribe();
