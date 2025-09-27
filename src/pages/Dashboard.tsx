@@ -15,66 +15,27 @@ import {
   Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEmergencyCalls, useClients } from "@/hooks/useProductionData";
+import { useDashboardData } from "@/hooks/useOptimizedData";
 import { useToast } from "@/hooks/useToast";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { DashboardMetrics } from "@/types/dashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { calls, loading: callsLoading } = useEmergencyCalls();
-  const { clients, loading: clientsLoading } = useClients();
-  const [analytics, setAnalytics] = useState<DashboardMetrics | null>(null);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const {
+    calls,
+    clients,
+    metrics,
+    urgentCalls,
+    todayCalls,
+    loading
+  } = useDashboardData();
   const toast = useToast();
-
-  // Load dashboard analytics
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_dashboard_metrics_optimized', {
-          time_period: '24h'
-        });
-        
-        if (error) throw error;
-        // Safely convert Supabase Json to DashboardMetrics
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          setAnalytics(data as unknown as DashboardMetrics);
-        }
-      } catch (error) {
-        // Only log in development
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to load analytics:', error);
-        }
-        toast.error("Erreur", "Impossible de charger les métriques");
-      } finally {
-        setLoadingAnalytics(false);
-      }
-    };
-
-    loadAnalytics();
-  }, []);
-
-  // Calculate real-time KPIs
-  const todayCalls = calls.filter(call => {
-    const today = new Date();
-    const callDate = new Date(call.created_at);
-    return callDate.toDateString() === today.toDateString();
-  });
-
-  const urgentCalls = calls.filter(call => 
-    ['P1', 'P2'].includes(call.priority) && call.status !== 'completed'
-  ).slice(0, 3);
-
-  const activeClients = clients.filter(client => client.status === 'active');
 
   const kpiCards = [
     {
       title: "Appels aujourd'hui",
-      value: loadingAnalytics ? '...' : (analytics?.totalCalls || todayCalls.length),
-      change: loadingAnalytics ? '...' : "+12%",
+      value: loading ? '...' : (metrics?.totalCalls || todayCalls.length),
+      change: loading ? '...' : "+12%",
       icon: Phone,
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -82,8 +43,8 @@ export default function Dashboard() {
     },
     {
       title: "Interventions actives",
-      value: loadingAnalytics ? '...' : (analytics?.activeCalls || calls.filter(c => c.status === 'active').length),
-      change: loadingAnalytics ? '...' : "+8%",
+      value: loading ? '...' : (metrics?.activeCalls || calls.filter(c => c.status === 'active').length),
+      change: loading ? '...' : "+8%",
       icon: Wrench,
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -91,8 +52,8 @@ export default function Dashboard() {
     },
     {
       title: "Clients actifs",
-      value: clientsLoading ? '...' : activeClients.length,
-      change: clientsLoading ? '...' : "+15%",
+      value: loading ? '...' : clients.length,
+      change: loading ? '...' : "+15%",
       icon: Users,
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -100,8 +61,8 @@ export default function Dashboard() {
     },
     {
       title: "Taux réussite",
-      value: loadingAnalytics ? '...' : `${Math.round(analytics?.successRate || 87)}%`,
-      change: loadingAnalytics ? '...' : "+3%",
+      value: loading ? '...' : `${Math.round(metrics?.successRate || 87)}%`,
+      change: loading ? '...' : "+3%",
       icon: TrendingUp,
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -151,7 +112,7 @@ export default function Dashboard() {
                   {kpi.title}
                 </CardTitle>
               <div className={`p-2 rounded-lg ${kpi.bgColor} group-hover:scale-110 transition-transform duration-200`}>
-                  {loadingAnalytics || callsLoading || clientsLoading ? (
+                  {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   ) : (
                     <Icon className={`h-4 w-4 ${kpi.color}`} />
@@ -190,7 +151,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {callsLoading ? (
+              {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-surface rounded-lg border">
                     <div className="flex items-center gap-3">
@@ -260,7 +221,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {callsLoading ? (
+              {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <Skeleton className="w-2 h-2 rounded-full mt-2" />

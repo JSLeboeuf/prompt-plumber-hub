@@ -25,15 +25,14 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useClients, useLeads } from "@/hooks/useProductionData";
+import { useCRMData } from "@/hooks/useOptimizedData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function CRM() {
-  const { clients, loading: clientsLoading, createClient } = useClients();
-  const { leads, loading: leadsLoading } = useLeads();
-  const { canAccess, loading } = useAuth();
+  const { clients, leads, loading: dataLoading, createClient } = useCRMData();
+  const { canAccess, loading: authLoading } = useAuth();
   const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
@@ -41,7 +40,7 @@ export default function CRM() {
   const [isCreating, setIsCreating] = useState(false);
 
   // Check permissions with auth loading state
-  if (loading) {
+  if (authLoading) {
     return <CRMLoadingSkeleton />;
   }
 
@@ -113,7 +112,7 @@ export default function CRM() {
     }
   };
 
-  if (clientsLoading || leadsLoading) {
+  if (dataLoading && clients.length === 0) {
     return <CRMLoadingSkeleton />;
   }
 

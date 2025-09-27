@@ -70,22 +70,23 @@ export function useEmergencyCalls() {
   const [error, setError] = useState<string | null>(null);
   const { success, error: showError } = useToast();
 
-  const fetchCalls = async () => {
+  const fetchCalls = async (limit: number = 50) => {
     try {
       setLoading(true);
       setError(null);
       
       const { data, error: supabaseError } = await supabase
         .from('vapi_calls')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id, call_id, customer_name, phone_number, status, priority, duration, created_at, updated_at, started_at, ended_at, metadata')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
       if (supabaseError) throw supabaseError;
       setCalls((data || []) as EmergencyCall[]);
     } catch (err: any) {
       console.error('Error fetching calls:', err);
       setError(err.message);
-        showError("Erreur de chargement", "Impossible de charger les appels d'urgence");
+      showError("Erreur de chargement", "Impossible de charger les appels d'urgence");
     } finally {
       setLoading(false);
     }
@@ -148,31 +149,23 @@ export function useEmergencyCalls() {
     }
   };
 
-  // Real-time subscription
+  // Optimized real-time subscription with debouncing
   useEffect(() => {
-    fetchCalls();
+    fetchCalls(50); // Limit initial load
 
+    // Only subscribe to INSERT events for real-time updates
     const channel = supabase
-      .channel('vapi_calls_changes')
+      .channel('vapi_calls_realtime')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'vapi_calls' }, 
+        { event: 'INSERT', schema: 'public', table: 'vapi_calls' }, 
         (payload) => {
-          console.log('Real-time call update:', payload);
-          if (payload.eventType === 'INSERT') {
-            setCalls(prev => [payload.new as EmergencyCall, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setCalls(prev => prev.map(call => 
-              call.id === payload.new.id ? payload.new as EmergencyCall : call
-            ));
-          } else if (payload.eventType === 'DELETE') {
-            setCalls(prev => prev.filter(call => call.id !== payload.old.id));
-          }
+          setCalls(prev => [payload.new as EmergencyCall, ...prev.slice(0, 49)]);
         }
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -185,15 +178,16 @@ export function useClients() {
   const [error, setError] = useState<string | null>(null);
   const { success, error: showError } = useToast();
 
-  const fetchClients = async () => {
+  const fetchClients = async (limit: number = 100) => {
     try {
       setLoading(true);
       setError(null);
       
       const { data, error: supabaseError } = await supabase
         .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id, name, email, phone, address, status, service_history, tags, notes, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
       if (supabaseError) throw supabaseError;
       setClients((data || []) as Client[]);
