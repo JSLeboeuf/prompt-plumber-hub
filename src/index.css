@@ -167,11 +167,11 @@
   }
 
   .animate-slide-up {
-    @apply animate-in slide-in-from-bottom-4 duration-400 ease-out;
+    @apply animate-in slide-in-from-bottom-4 duration-300 ease-out;
   }
 
   .animate-slide-down {
-    @apply animate-in slide-in-from-top-4 duration-400 ease-out;
+    @apply animate-in slide-in-from-top-4 duration-300 ease-out;
   }
 
   /* Interactive Elements */
