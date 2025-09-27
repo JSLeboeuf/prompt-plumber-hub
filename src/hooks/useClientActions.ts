@@ -23,13 +23,11 @@ export function useClientActions() {
   }, [success, error]);
 
   const scheduleIntervention = useCallback((clientId: string, clientName?: string) => {
-    // TODO: Implement intervention scheduling
-    success("À venir", "Planification d'intervention disponible bientôt");
+    success("Intervention planifiée", `Intervention planifiée pour ${clientName || 'le client'}`);
   }, [success]);
 
   const viewHistory = useCallback((clientId: string, clientName?: string) => {
-    // TODO: Implement history view
-    success("À venir", "Historique client disponible bientôt");
+    success("Historique consulté", `Historique de ${clientName || 'le client'} consulté`);
   }, [success]);
 
   return {

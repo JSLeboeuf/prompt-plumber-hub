@@ -52,7 +52,7 @@ export const useRealtimeSubscription = ({
         (payload: any) => {
           // Only log in development
           if (process.env.NODE_ENV === 'development') {
-            console.log(`${table} realtime update:`, (payload as any).eventType);
+            
           }
 
           switch ((payload as any).eventType) {

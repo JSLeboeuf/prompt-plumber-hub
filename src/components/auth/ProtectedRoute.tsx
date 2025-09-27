@@ -21,19 +21,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     if (!loading) {
       if (!user || !profile) {
-        console.log('🚫 No user/profile, redirecting to auth');
+        
         navigate('/auth');
         return;
       }
 
       if (requiredRole && profile.role !== requiredRole) {
-        console.log('🚫 Role check failed, redirecting to dashboard');
+        
         navigate('/dashboard');
         return;
       }
 
       if (resource && !canAccess(resource, action)) {
-        console.log('🚫 Access check failed, redirecting to dashboard');
+        
         navigate('/dashboard');
         return;
       }

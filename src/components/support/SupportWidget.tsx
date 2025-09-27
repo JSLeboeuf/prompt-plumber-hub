@@ -22,7 +22,7 @@ export const SupportWidget = () => {
       icon: MessageCircle,
       title: "Chatbot IA",
       description: "Disponible 24/7",
-      action: () => console.log("Open chatbot"),
+      
       urgent: false
     },
     {
@@ -36,7 +36,7 @@ export const SupportWidget = () => {
       icon: FileText,
       title: "Feedback",
       description: "Partagez votre expérience",
-      action: () => console.log("Open feedback form"),
+      action: () => {},
       urgent: false
     }
   ];

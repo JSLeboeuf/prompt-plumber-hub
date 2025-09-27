@@ -40,14 +40,12 @@ export default function AuthNew() {
   // Redirect if already authenticated
   useEffect(() => {
     if (session?.user) {
-      console.log('✅ User authenticated, redirecting to dashboard');
+      
       navigate('/dashboard');
     }
   }, [session, navigate]);
 
   const onSubmit = async (values: FormValues) => {
-    console.log('🔄 Form submission started:', { email: values.email, mode });
-    setLastError('');
     setDebugInfo(`Tentative de ${mode === 'login' ? 'connexion' : 'inscription'} pour ${values.email}...`);
     
     try {
@@ -61,11 +59,9 @@ export default function AuthNew() {
       
       if (result.error) {
         const errorMessage = result.error.message || 'Erreur inconnue';
-        console.error('❌ Auth error:', result.error);
         setLastError(errorMessage);
         setDebugInfo(`Erreur: ${errorMessage}`);
       } else {
-        console.log('✅ Auth successful');
         setDebugInfo(mode === 'login' ? 'Connexion réussie!' : 'Inscription réussie! Vérifiez votre email.');
         
         if (mode === 'signup') {
@@ -74,7 +70,6 @@ export default function AuthNew() {
       }
       
     } catch (error: any) {
-      console.error('❌ Form submission error:', error);
       const errorMessage = error.message || 'Une erreur est survenue';
       setLastError(errorMessage);
       setDebugInfo(`Erreur: ${errorMessage}`);

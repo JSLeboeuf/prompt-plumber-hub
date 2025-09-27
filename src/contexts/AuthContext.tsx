@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load user profile from database
   const loadProfile = async (currentUser: User) => {
     try {
-      console.log('🔄 Loading profile for user:', currentUser.email);
+      
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       };
 
-      console.log('✅ Profile loaded:', profileData);
+      
       setProfile(profileData);
       
     } catch (error) {
@@ -103,12 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Handle auth state changes
   useEffect(() => {
-    console.log('🔄 Setting up auth listener...');
+    
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔔 Auth event:', event, session?.user?.email);
+        
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔄 Initial session:', session?.user?.email);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -137,13 +137,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
-      console.log('🧹 Cleaning up auth listener');
+      
       subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔐 Attempting sign in for:', email);
+    
     setLoading(true);
     
     try {
@@ -158,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       
-      console.log('✅ Sign in successful:', data.user?.email);
+      
       return { error: null };
       
     } catch (error: any) {
@@ -171,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
-    console.log('📝 Attempting sign up for:', email);
+    
     setLoading(true);
     
     try {
@@ -191,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       
-      console.log('✅ Sign up successful:', data.user?.email);
+      
       return { error: null };
       
     } catch (error: any) {
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('🚪 Signing out...');
+    
     setLoading(true);
     
     try {
@@ -214,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      console.log('✅ Sign out successful');
+      
     } catch (error: any) {
       console.error('❌ Sign out exception:', error);
       showError('Erreur', error.message || 'Erreur de déconnexion');
