@@ -14,6 +14,7 @@ import Interventions from "./pages/Interventions";
 import Analytics from "./pages/Analytics";
 import Conformite from "./pages/Conformite";
 import Support from "./pages/Support";
+import ProductionValidation from "./pages/ProductionValidation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="analytics" element={<Analytics />} />
               <Route path="conformite" element={<Conformite />} />
               <Route path="support" element={<Support />} />
+              <Route path="validation" element={<ProductionValidation />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

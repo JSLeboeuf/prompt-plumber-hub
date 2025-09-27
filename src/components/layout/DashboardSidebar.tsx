@@ -8,7 +8,8 @@ import {
   Shield,
   HelpCircle,
   Settings,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +53,12 @@ const navigationItems = [
     href: "/dashboard/conformite",
     icon: Shield,
     description: "RGPD & Audit"
+  },
+  {
+    title: "Validation Prod",
+    href: "/dashboard/validation",
+    icon: CheckCircle,
+    description: "Tests & Certification"
   },
   {
     title: "Support",
