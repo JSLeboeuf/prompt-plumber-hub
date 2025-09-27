@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard,
@@ -22,7 +22,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -101,7 +100,7 @@ export function AppSidebar() {
     return currentPath.startsWith(href);
   };
 
-  const isExpanded = navigationItems.some((item) => isActive(item.href));
+  
 
   const getNavClassName = (href: string) => {
     const active = isActive(href);

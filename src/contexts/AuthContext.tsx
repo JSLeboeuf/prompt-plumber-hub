@@ -105,19 +105,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        
-        
+const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
         if (session?.user) {
           await loadProfile(session.user);
         } else {
           setProfile(null);
         }
-        
         setLoading(false);
       }
     );
@@ -146,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -175,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       const redirectUrl = `${window.location.origin}/`;
-      const { data, error } = await supabase.auth.signUp({
+const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {

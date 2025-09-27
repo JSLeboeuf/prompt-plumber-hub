@@ -31,7 +31,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { AnalyticsLoadingState } from "@/components/analytics/AnalyticsLoadingState";
 import { AnalyticsErrorState } from "@/components/analytics/AnalyticsErrorState";
 import { SearchInput } from "@/components/analytics/SearchInput";
-import { EmergencyCall, Client } from "@/hooks/useProductionData";
+
 import { DashboardMetrics } from "@/types/dashboard";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -41,7 +41,7 @@ export default function Analytics() {
   
   // Use production data hooks instead of optimized hooks to avoid TypeScript issues
   const { calls, loading: callsLoading, error: callsError, fetchCalls } = useEmergencyCalls();
-  const { clients, loading: clientsLoading, error: clientsError, fetchClients } = useClients();
+  const { clients, error: clientsError, fetchClients } = useClients();
 
   // Analytics state
   const [analytics, setAnalytics] = useState<DashboardMetrics | null>(null);

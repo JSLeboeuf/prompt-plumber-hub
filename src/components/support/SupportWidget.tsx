@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { HelpCircle, Phone, MessageCircle, Mail, FileText, X, Mic } from "lucide-react";
+import { HelpCircle, Phone, MessageCircle, Mail, FileText, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Input } from "@/components/ui/input";
 
 export const SupportWidget = () => {

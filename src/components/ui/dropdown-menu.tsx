@@ -8,11 +8,11 @@ export function DropdownMenu({ children }: DropdownMenuProps) {
   return <div>{children}</div>
 }
 
-export function DropdownMenuTrigger({ children, asChild }: { children: React.ReactNode, asChild?: boolean }) {
+export function DropdownMenuTrigger({ children, asChild: _asChild }: { children: React.ReactNode, asChild?: boolean }) {
   return <div>{children}</div>
 }
 
-export function DropdownMenuContent({ children, align, className }: { 
+export function DropdownMenuContent({ children, align: _align, className }: { 
   children: React.ReactNode, 
   align?: string,
   className?: string 
