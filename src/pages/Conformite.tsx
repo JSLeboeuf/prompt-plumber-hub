@@ -22,7 +22,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Real compliance data from Supabase

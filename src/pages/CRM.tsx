@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useClients, useLeads } from "@/hooks/useProductionData";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEmergencyCalls, useClients } from "@/hooks/useProductionData";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { AnalyticsLoadingState } from "@/components/analytics/AnalyticsLoadingState";

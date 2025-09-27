@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInterventions } from "@/hooks/useInterventions";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 
 export default function Interventions() {
