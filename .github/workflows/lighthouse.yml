@@ -1,0 +1,29 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lhci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Lighthouse (preview)
+        run: npx lhci autorun --collect.staticDistDir=dist --collect.startServerCommand="npm run preview -- --port 8080" --assert.assertions.categories:performance=warn:0.85 --assert.assertions.categories:accessibility=warn:0.9 --assert.assertions.categories:best-practices=warn:0.9 --assert.assertions.categories:seo=warn:0.9

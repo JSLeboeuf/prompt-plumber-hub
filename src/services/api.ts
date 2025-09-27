@@ -1,21 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/config/api.config";
 
 // Environment configuration
 const config = {
   vapi: {
-    publicKey: import.meta.env.VITE_VAPI_PUBLIC_KEY || '',
-    assistantId: import.meta.env.VITE_VAPI_ASSISTANT_ID || '',
-    webhookUrl: '/api/vapi/webhook'
+    publicKey: import.meta.env.VITE_VAPI_PUBLIC_KEY,
+    assistantId: import.meta.env.VITE_VAPI_ASSISTANT_ID,
   },
   twilio: {
-    accountSid: import.meta.env.VITE_TWILIO_ACCOUNT_SID || '',
-    webhookUrl: '/api/twilio/sms'
+    accountSid: import.meta.env.VITE_TWILIO_ACCOUNT_SID,
   },
   n8n: {
-    webhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || '',
+    webhookUrl: import.meta.env.VITE_N8N_BASE_URL,
   },
   maps: {
-    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   }
 };
 
@@ -23,19 +22,15 @@ const config = {
 export class VAPIService {
   static async startCall(phoneNumber: string, context: any) {
     try {
-      const response = await fetch('/api/vapi/start-call', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.vapi.publicKey}`
-        },
-        body: JSON.stringify({
-          phoneNumber,
-          assistantId: config.vapi.assistantId,
+      const { data, error } = await supabase.functions.invoke('vapi-call', {
+        body: {
+          phone_number: phoneNumber,
+          assistant_id: config.vapi.assistantId,
           context
-        })
+        }
       });
-      return await response.json();
+      if (error) throw error;
+      return data;
     } catch (error) {
       console.error('VAPI call failed:', error);
       throw error;
@@ -45,7 +40,7 @@ export class VAPIService {
   static async getCallTranscript(callId: string) {
       const { data, error } = await supabase
         .from('call_transcripts')
-        .select('id, call_id, customer_name, status, priority, created_at, duration')
+        .select('id, call_id, message, role, confidence, created_at, timestamp, metadata')
         .eq('call_id', callId)
         .order('created_at', { ascending: false });
     
@@ -96,15 +91,12 @@ export class SMSService {
 export class AutomationService {
   static async triggerWorkflow(workflowName: string, data: any) {
     try {
-      const response = await fetch(`${config.n8n.webhookUrl}/${workflowName}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+      const { data: result, error } = await apiClient.post('/functions/v1/n8n-webhook', {
+        webhook: workflowName,
+        payload: data,
       });
-      
-      return await response.json();
+      if (error) throw new Error(error);
+      return result;
     } catch (error) {
       console.error('n8n workflow trigger failed:', error);
       throw error;
@@ -183,8 +175,7 @@ export class RealtimeService {
         { 
           event: '*', 
           schema: 'public', 
-          table: 'vapi_calls',
-          filter: `customer_id=eq.${userId}`
+          table: 'vapi_calls'
         }, 
         callback
       )

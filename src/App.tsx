@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,16 +9,17 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ModernDashboardLayout } from "./components/layout/ModernDashboardLayout";
 import { SupportWidget } from "./components/support/SupportWidget";
 import { AlertBanner } from "./components/alerts/AlertBanner";
-import Dashboard from "./pages/Dashboard";
-import Calls from "./pages/Calls";
-import CRM from "./pages/CRM";
-import Interventions from "./pages/Interventions";
-import Analytics from "./pages/Analytics";
-import Conformite from "./pages/Conformite";
-import Support from "./pages/Support";
-import NotFound from "./pages/NotFound";
-import AuthNew from "./pages/AuthNew";
-import Settings from "./pages/Settings";
+import { lazy, Suspense } from "react";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Calls = lazy(() => import("./pages/Calls"));
+const CRM = lazy(() => import("./pages/CRM"));
+const Interventions = lazy(() => import("./pages/Interventions"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Conformite = lazy(() => import("./pages/Conformite"));
+const Support = lazy(() => import("./pages/Support"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AuthNew = lazy(() => import("./pages/AuthNew"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient();
 
@@ -29,9 +29,9 @@ const App = () => (
       <ErrorBoundary>
         <AuthProvider>
           <ToastProvider>
-            <Toaster />
             <Sonner />
             <BrowserRouter>
+              <Suspense fallback={<div className="p-6">Chargement...</div>}>
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/auth" element={<AuthNew />} />
@@ -51,6 +51,7 @@ const App = () => (
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </BrowserRouter>
           </ToastProvider>
         </AuthProvider>

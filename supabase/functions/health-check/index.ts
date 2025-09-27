@@ -26,21 +26,23 @@ serve(async (req) => {
 
     // 1. Vérifier la connectivité à la base de données
     try {
-      const { data, error } = await supabase
+      const t0 = Date.now();
+      const { error } = await supabase
         .from('clients')
         .select('count(*)')
         .limit(1);
+      const latency = Date.now() - t0;
       
       healthChecks.checks.database = {
         status: error ? 'unhealthy' : 'healthy',
         message: error ? error.message : 'Database connection OK',
-        response_time: Date.now()
+        latency_ms: latency
       };
     } catch (dbError) {
       healthChecks.checks.database = {
         status: 'unhealthy',
         message: `Database error: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`,
-        response_time: Date.now()
+        latency_ms: null
       };
     }
 

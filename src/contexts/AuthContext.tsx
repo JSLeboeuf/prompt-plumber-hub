@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/useToast';
+import { toast } from '@/components/ui/sonner';
 
 export interface UserProfile {
   id: string;
@@ -45,7 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { error: showError } = useToast();
 
   // Load user profile from database
   const loadProfile = async (currentUser: User) => {
@@ -154,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('❌ Sign in error:', error);
-        showError('Erreur de connexion', error.message);
+        toast.error('Erreur de connexion', { description: error.message });
         return { error };
       }
       
@@ -163,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('❌ Sign in exception:', error);
-      showError('Erreur', error.message || 'Erreur de connexion');
+      toast.error('Erreur', { description: error.message || 'Erreur de connexion' });
       return { error };
     } finally {
       setLoading(false);
@@ -187,7 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('❌ Sign up error:', error);
-        showError('Erreur d\'inscription', error.message);
+        toast.error("Erreur d'inscription", { description: error.message });
         return { error };
       }
       
@@ -196,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('❌ Sign up exception:', error);
-      showError('Erreur', error.message || 'Erreur d\'inscription');
+      toast.error('Erreur', { description: error.message || "Erreur d'inscription" });
       return { error };
     } finally {
       setLoading(false);
@@ -217,7 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('❌ Sign out exception:', error);
-      showError('Erreur', error.message || 'Erreur de déconnexion');
+      toast.error('Erreur', { description: error.message || 'Erreur de déconnexion' });
     } finally {
       setLoading(false);
     }

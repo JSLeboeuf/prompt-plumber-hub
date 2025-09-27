@@ -56,8 +56,8 @@ Dashboard SaaS complet pour la gestion d'interventions de plomberie d'urgence. I
 ### Variables d'environnement
 ```env
 # Supabase
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
 
 # VAPI (Voice AI)
 VITE_VAPI_PUBLIC_KEY=your-vapi-key
@@ -66,15 +66,19 @@ VITE_VAPI_ASSISTANT_ID=your-assistant-id
 # Twilio SMS
 VITE_TWILIO_ACCOUNT_SID=your-account-sid
 
-# n8n Automation
-VITE_N8N_WEBHOOK_URL=https://your-n8n.app/webhook/drain-fortin
+# n8n Automation (base URL)
+VITE_N8N_BASE_URL=
 
 # Google Maps
-VITE_GOOGLE_MAPS_API_KEY=your-maps-key
+VITE_GOOGLE_MAPS_API_KEY=
 
 # Environment
 VITE_ENVIRONMENT=development
 ```
+
+### Fichier d'exemple d'environnement
+
+- Copiez `.env.example` en `.env.local` et remplissez les variables requises.
 
 ### Installation
 ```bash
@@ -190,3 +194,69 @@ npm run preview
 ---
 
 **Drain Fortin SaaS** - Plomberie d'urgence digitalisée 🔧💧
+
+## 🧪 Tests
+
+- Unitaire: Vitest + React Testing Library
+- E2E: Playwright
+
+Commandes:
+
+```bash
+npm run test        # unitaires
+npm run coverage    # couverture V8
+npm run test:e2e    # e2e (nécessite npm run dev)
+```
+
+## 🌐 i18n
+
+- i18next initialisé (fr par défaut, fallback en)
+- Fichier: `src/i18n.ts`
+
+## ♿ Accessibilité
+
+- @axe-core/react activé en développement pour détecter les erreurs a11y
+
+## 📦 Visualisation bundle
+
+- Ajoutez le plugin `rollup-plugin-visualizer` dans la config Vite pour analyser la taille des bundles.
+
+## 🔁 CI/CD (à configurer)
+
+- Lint + Type-check + Tests + Build (GitHub Actions recommandé)
+- Budgets de perf/a11y via Lighthouse CI (optionnel)
+
+## 🧭 Onboarding & Contribuer
+
+### Prérequis
+- Node.js 20+
+- npm 10+
+- Compte Supabase configuré (variables d'env)
+
+### Installation
+```bash
+npm ci --no-audit --no-fund
+```
+
+### Lancement (Windows)
+Si `npm run dev` échoue, utilisez les binaires locaux:
+```bash
+node node_modules/vite/bin/vite.js          # dev
+node node_modules/vite/bin/vite.js build    # build
+npm run preview                              # preview
+```
+
+### Qualité
+```bash
+npx tsc --noEmit
+npx eslint .
+npx vitest run
+# E2E
+npx @playwright/test install
+node node_modules/@playwright/test/cli.js test
+```
+
+### CI/CD
+- CI (lint + tsc + unit + build) via `.github/workflows/ci.yml`
+- E2E Playwright via `.github/workflows/e2e.yml`
+- Lighthouse (perf/a11y) via `.github/workflows/lighthouse.yml`

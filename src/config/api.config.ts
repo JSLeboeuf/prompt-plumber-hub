@@ -19,15 +19,15 @@ requiredEnvVars.forEach(envVar => {
 export const API_CONFIG = {
   // Supabase configuration
   supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL || 'https://rmtnitwtxikuvnrlsmtq.supabase.co',
-    anonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdG5pdHd0eGlrdXZucmxzbXRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MTc0MjAsImV4cCI6MjA3MzI5MzQyMH0.Wd5fOfMNJ--1E4GTggB4pMW2z0VSZVgHgd0k0e2lOTc',
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   },
 
   // VAPI Voice AI configuration
   vapi: {
     baseUrl: 'https://api.vapi.ai/v1',
-    publicKey: import.meta.env.VITE_VAPI_PUBLIC_KEY || '',
-    assistantId: import.meta.env.VITE_VAPI_ASSISTANT_ID || '',
+    publicKey: import.meta.env.VITE_VAPI_PUBLIC_KEY,
+    assistantId: import.meta.env.VITE_VAPI_ASSISTANT_ID,
     webhookUrl: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vapi-webhook`,
   },
 
@@ -38,7 +38,7 @@ export const API_CONFIG = {
 
   // n8n Automation webhooks
   n8n: {
-    baseUrl: import.meta.env.VITE_N8N_BASE_URL || 'https://your-n8n-instance.com',
+    baseUrl: import.meta.env.VITE_N8N_BASE_URL,
     webhooks: {
       newClient: `${import.meta.env.VITE_N8N_BASE_URL}/webhook/new-client`,
       emergencyCall: `${import.meta.env.VITE_N8N_BASE_URL}/webhook/emergency-call`,
@@ -49,7 +49,7 @@ export const API_CONFIG = {
 
   // Google Maps configuration
   maps: {
-    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     baseUrl: 'https://maps.googleapis.com/maps/api',
   },
 
@@ -202,25 +202,17 @@ export const apiClient = createApiClient();
 // Webhook utilities
 export const webhookUtils = {
   async triggerN8nWebhook(webhook: keyof typeof API_CONFIG.n8n.webhooks, data: any) {
-    const url = API_CONFIG.n8n.webhooks[webhook];
-    if (!url) {
-      console.warn(`N8N webhook URL not configured for: ${webhook}`);
-      return { success: false, error: 'Webhook URL not configured' };
-    }
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...data, 
-          timestamp: new Date().toISOString(),
-          source: 'drain-fortin-dashboard' 
-        }),
-        mode: 'no-cors',
+      // Proxy via Edge Function to avoid exposing credentials/CORS issues
+      const { data: result, error } = await apiClient.post(API_CONFIG.webhooks.n8n, {
+        webhook,
+        payload: data,
+        source: 'drain-fortin-dashboard',
+        timestamp: new Date().toISOString(),
       });
-      
-      return { success: true, data: response };
+
+      if (error) return { success: false, error };
+      return { success: true, data: result };
     } catch (error) {
       console.error('N8N webhook error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
