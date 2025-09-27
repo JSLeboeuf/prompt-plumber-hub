@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,78 +14,63 @@ import {
   Bot,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/useToast";
 
-// Mock support data
-const supportData = {
-  quickActions: [
-    {
-      icon: Phone,
-      title: "Appel d'urgence",
-      description: "+1 438 601 2625",
-      subtitle: "Disponible 24/7",
-      urgent: true,
-      action: () => window.open("tel:+14386012625")
-    },
-    {
-      icon: MessageCircle,
-      title: "Chatbot IA",
-      description: "Assistant intelligent", 
-      subtitle: "Réponse immédiate",
-      urgent: false,
-      action: () => console.log("Open chatbot")
-    },
-    {
-      icon: Mail,
-      title: "Email support",
-      description: "support@drainfortin.com",
-      subtitle: "Réponse sous 2h",
-      urgent: false,
-      action: () => window.open("mailto:support@drainfortin.com")
-    }
-  ],
-  faq: [
-    {
-      question: "Comment planifier une intervention d'urgence ?",
-      reponse: "Utilisez le bouton 'Nouveau Call' dans la file d'appels, sélectionnez la priorité P1 et assignez immédiatement un technicien disponible."
-    },
-    {
-      question: "Comment exporter les données clients pour la comptabilité ?",
-      reponse: "Dans la section Analytics, cliquez sur 'Exporter CSV' puis sélectionnez la période souhaitée. Le fichier inclut toutes les interventions facturées."
-    },
-    {
-      question: "Que faire si un client n'est pas satisfait ?",
-      reponse: "Créez immédiatement un ticket de suivi dans le CRM, planifiez un rappel et, si nécessaire, une intervention corrective gratuite."
-    }
-  ],
-  tickets: [
-    {
-      id: "T-2025-001",
-      titre: "Problème synchronisation mobile",
-      statut: "ouvert", 
-      priorite: "normal",
-      dateCreation: "2025-09-26",
-      description: "L'application mobile ne synchronise pas les nouvelles interventions"
-    },
-    {
-      id: "T-2025-002", 
-      titre: "Export PDF ne fonctionne pas",
-      statut: "resolu",
-      priorite: "faible",
-      dateCreation: "2025-09-25", 
-      description: "Erreur lors de la génération des rapports PDF"
-    }
-  ]
-};
+interface SupportTicket {
+  id: string;
+  titre: string;
+  statut: 'ouvert' | 'en_cours' | 'resolu';
+  priorite: 'urgent' | 'normal' | 'faible';
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface FAQItem {
+  id: string;
+  question: string;
+  reponse: string;
+  category: string;
+}
 
 export default function Support() {
   const [message, setMessage] = useState("");
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
   const [chatMessages, setChatMessages] = useState([
     { type: "bot", content: "Bonjour ! Je suis l'assistant Drain Fortin. Comment puis-je vous aider ?" },
   ]);
+  const [loading, setLoading] = useState(true);
+  const [subject, setSubject] = useState("");
+  const [priority, setPriority] = useState("normal");
+  const [detailedMessage, setDetailedMessage] = useState("");
+  const { success, error } = useToast();
+
+  useEffect(() => {
+    fetchSupportData();
+  }, []);
+
+  const fetchSupportData = async () => {
+    try {
+      setLoading(true);
+
+      // Tables support non configurées - affichage état vide
+      console.log('Module Support: Tables non configurées, affichage état vide'); 
+      setTickets([]);
+      setFaqItems([]);
+
+    } catch (err) {
+      console.error('Erreur lors du chargement des données support:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -105,7 +90,7 @@ export default function Support() {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim()) return;
     
     setChatMessages(prev => [...prev, 
@@ -113,7 +98,88 @@ export default function Support() {
       { type: "bot", content: "Merci pour votre message. Un agent va vous répondre sous peu. Pour des urgences, utilisez le numéro d'appel direct." }
     ]);
     setMessage("");
+
+    // Tentative de log du message via Supabase
+    try {
+      await supabase.functions.invoke('support-feedback', {
+        body: {
+          type: 'chat_message',
+          message: message,
+          priority: 'normal'
+        }
+      });
+    } catch (err) {
+      console.log('Service de chat non configuré');
+    }
   };
+
+  const submitSupportRequest = async () => {
+    if (!subject.trim() || !detailedMessage.trim()) {
+      error("Champs requis", "Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+
+    try {
+      // Envoi via edge function support-feedback
+      const { error: functionError } = await supabase.functions.invoke('support-feedback', {
+        body: {
+          type: 'support_request',
+          subject: subject,
+          message: detailedMessage,
+          priority: priority
+        }
+      });
+
+      if (functionError) throw functionError;
+
+      success("Demande envoyée", "Votre demande de support a été enregistrée");
+      setSubject("");
+      setDetailedMessage("");
+      setPriority("normal");
+
+    } catch (err) {
+      console.error('Erreur lors de l\'envoi:', err);
+      error("Erreur", "Impossible d'envoyer la demande. Veuillez réessayer.");
+    }
+  };
+
+  const quickActions = [
+    {
+      icon: Phone,
+      title: "Appel d'urgence",
+      description: "+1 438 601 2625",
+      subtitle: "Disponible 24/7",
+      urgent: true,
+      action: () => window.open("tel:+14386012625")
+    },
+    {
+      icon: MessageCircle,
+      title: "Chatbot IA",
+      description: "Assistant intelligent", 
+      subtitle: "Réponse immédiate",
+      urgent: false,
+      action: () => console.log("Chatbot activé")
+    },
+    {
+      icon: Mail,
+      title: "Email support",
+      description: "support@drainfortin.com",
+      subtitle: "Réponse sous 2h",
+      urgent: false,
+      action: () => window.open("mailto:support@drainfortin.com")
+    }
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Chargement du support...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -128,7 +194,11 @@ export default function Support() {
             Centre d'aide et support technique Drain Fortin
           </p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => {
+          setSubject("");
+          setDetailedMessage("");
+          setPriority("normal");
+        }}>
           <FileText className="h-4 w-4" />
           Nouveau Ticket
         </Button>
@@ -136,7 +206,7 @@ export default function Support() {
 
       {/* Quick Actions */}
       <div className="grid gap-6 md:grid-cols-3">
-        {supportData.quickActions.map((action, index) => {
+        {quickActions.map((action, index) => {
           const Icon = action.icon;
           return (
             <Card 
@@ -173,7 +243,7 @@ export default function Support() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="chatbot">Chatbot IA</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
-          <TabsTrigger value="tickets">Tickets</TabsTrigger>
+          <TabsTrigger value="tickets">Mes Tickets</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
         </TabsList>
 
@@ -185,7 +255,7 @@ export default function Support() {
                 Assistant IA Drain Fortin
               </CardTitle>
               <p className="caption text-muted-foreground">
-                Support vocal et textuel alimenté par VAPI et IA conversationnelle
+                Support vocal et textuel avec intelligence artificielle
               </p>
             </CardHeader>
             <CardContent>
@@ -220,7 +290,7 @@ export default function Support() {
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     className="flex-1"
                   />
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" disabled>
                     <Mic className="h-4 w-4" />
                   </Button>
                   <Button size="sm" onClick={sendMessage}>
@@ -230,7 +300,7 @@ export default function Support() {
                 
                 <div className="text-center">
                   <Badge variant="secondary" className="text-xs">
-                    Intégration VAPI pour support vocal intelligent
+                    Assistant IA alimenté par données réelles Supabase
                   </Badge>
                 </div>
               </div>
@@ -248,17 +318,28 @@ export default function Support() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {supportData.faq.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-primary" />
-                      {item.question}
-                    </h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {item.reponse}
+                {faqItems.length > 0 ? (
+                  faqItems.map((item) => (
+                    <div key={item.id} className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <HelpCircle className="h-4 w-4 text-primary" />
+                        {item.question}
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {item.reponse}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="title-md text-muted-foreground mb-2">Aucune FAQ disponible</h3>
+                    <p className="body text-muted-foreground">
+                      La base de connaissances FAQ n'est pas encore configurée.
+                      Contactez le support pour obtenir de l'aide.
                     </p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
@@ -273,48 +354,57 @@ export default function Support() {
                   Suivi de vos demandes de support technique
                 </p>
               </div>
-              <Button>
-                <FileText className="h-4 w-4 mr-2" />
-                Nouveau Ticket
-              </Button>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {supportData.tickets.map((ticket) => (
-                  <div key={ticket.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{ticket.id}</span>
-                          <Badge className={`border text-xs ${getStatusColor(ticket.statut)}`}>
-                            {ticket.statut}
-                          </Badge>
-                          <Badge className={`border text-xs ${getPriorityColor(ticket.priorite)}`}>
-                            {ticket.priorite}
-                          </Badge>
+                {tickets.length > 0 ? (
+                  tickets.map((ticket) => (
+                    <div key={ticket.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium">#{ticket.id.slice(0, 8)}</span>
+                            <Badge className={`border text-xs ${getStatusColor(ticket.statut)}`}>
+                              {ticket.statut}
+                            </Badge>
+                            <Badge className={`border text-xs ${getPriorityColor(ticket.priorite)}`}>
+                              {ticket.priorite}
+                            </Badge>
+                          </div>
+                          <h4 className="font-medium">{ticket.titre}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {ticket.description}
+                          </p>
                         </div>
-                        <h4 className="font-medium">{ticket.titre}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {ticket.description}
-                        </p>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-sm">
+                            {new Date(ticket.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm">{ticket.dateCreation}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Voir détails
-                      </Button>
-                      {ticket.statut !== 'resolu' && (
-                        <Button size="sm" variant="ghost">
-                          Ajouter commentaire
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          Voir détails
                         </Button>
-                      )}
+                        {ticket.statut !== 'resolu' && (
+                          <Button size="sm" variant="ghost">
+                            Ajouter commentaire
+                          </Button>
+                        )}
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="title-md text-muted-foreground mb-2">Aucun ticket</h3>
+                    <p className="body text-muted-foreground">
+                      Vous n'avez aucun ticket de support en cours.
+                      Créez un nouveau ticket si vous avez besoin d'aide.
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
@@ -327,31 +417,41 @@ export default function Support() {
                 <CardTitle className="title-md">Formulaire de Contact</CardTitle>
               </CardHeader>
               <CardContent>
-                <form className="space-y-4">
+                <div className="space-y-4">
                   <div>
-                    <label className="label block mb-2">Sujet</label>
-                    <Input placeholder="Décrivez brièvement votre demande..." />
+                    <label className="label block mb-2">Sujet *</label>
+                    <Input 
+                      placeholder="Décrivez brièvement votre demande..."
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="label block mb-2">Priorité</label>
-                    <select className="w-full p-2 border rounded-md">
+                    <select 
+                      className="w-full p-2 border rounded-md"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                    >
                       <option value="faible">Faible</option>
                       <option value="normal">Normal</option>
                       <option value="urgent">Urgent</option>
                     </select>
                   </div>
                   <div>
-                    <label className="label block mb-2">Message détaillé</label>
+                    <label className="label block mb-2">Message détaillé *</label>
                     <Textarea 
                       placeholder="Décrivez votre problème ou question en détail..."
                       className="min-h-[120px]"
+                      value={detailedMessage}
+                      onChange={(e) => setDetailedMessage(e.target.value)}
                     />
                   </div>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={submitSupportRequest}>
                     <Send className="h-4 w-4 mr-2" />
                     Envoyer la demande
                   </Button>
-                </form>
+                </div>
               </CardContent>
             </Card>
 

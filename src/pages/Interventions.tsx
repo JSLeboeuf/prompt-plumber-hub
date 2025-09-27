@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,76 +11,70 @@ import {
   User,
   Plus,
   Columns,
-  CalendarIcon
+  CalendarIcon,
+  Loader2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/useToast";
 
-// Mock data for interventions
-const interventionsData = {
-  stats: {
-    aPlanifier: 8,
-    enCours: 5,
-    termine: 12,
-    facture: 18
-  },
-  interventions: [
-    {
-      id: 1,
-      titre: "Tuyau éclaté cuisine",
-      client: "Jean Dupont", 
-      adresse: "123 Rue Laval, Montréal",
-      date: "2025-09-27",
-      heure: "14:30",
-      statut: "planifie",
-      priorite: "urgent",
-      description: "Cuisine inondée, réparation immédiate requise",
-      prix: 350,
-      technicien: null
-    },
-    {
-      id: 2,
-      titre: "Réparation chasse d'eau",
-      client: "Marie Martin",
-      adresse: "456 Ave Cartier, Québec", 
-      date: "2025-09-28",
-      heure: "10:00",
-      statut: "en_cours",
-      priorite: "normal", 
-      description: "Fuite continue, remplacement mécanisme",
-      prix: 180,
-      technicien: "Tech-02"
-    },
-    {
-      id: 3,
-      titre: "Installation chauffe-eau",
-      client: "Pierre Laval",
-      adresse: "789 Boul. Saint-Laurent, Longueuil",
-      date: "2025-09-26", 
-      heure: "09:00",
-      statut: "termine",
-      priorite: "normal",
-      description: "Remplacement chauffe-eau 40 gallons",
-      prix: 890,
-      technicien: "Tech-01"
-    },
-    {
-      id: 4,
-      titre: "Débouchage canalisation",
-      client: "Sophie Gagnon", 
-      adresse: "321 Rue Ontario, Montréal",
-      date: "2025-09-25",
-      heure: "13:30",
-      statut: "facture",
-      priorite: "urgent",
-      description: "Débouchage complet système évacuation",
-      prix: 280,
-      technicien: "Tech-03"
-    }
-  ]
-};
+interface Intervention {
+  id: string;
+  titre: string;
+  client_id?: string;
+  client_name: string;
+  adresse: string;
+  date_intervention: string;
+  heure_intervention: string;
+  statut: 'planifie' | 'en_cours' | 'termine' | 'facture';
+  priorite: 'urgent' | 'normal' | 'faible';
+  description: string;
+  prix_estime?: number;
+  technicien_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface InterventionStats {
+  aPlanifier: number;
+  enCours: number;
+  termine: number;
+  facture: number;
+}
 
 export default function Interventions() {
   const [view, setView] = useState("kanban");
+  const [interventions, setInterventions] = useState<Intervention[]>([]);
+  const [stats, setStats] = useState<InterventionStats>({
+    aPlanifier: 0,
+    enCours: 0,
+    termine: 0,
+    facture: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const { success, error } = useToast();
+
+  useEffect(() => {
+    fetchInterventions();
+  }, []);
+
+  const fetchInterventions = async () => {
+    try {
+      setLoading(true);
+      
+      // Table interventions non configurée - affichage état vide
+      console.log('Module Interventions: Table non configurée, affichage état vide');
+      setInterventions([]);
+      setStats({ aPlanifier: 0, enCours: 0, termine: 0, facture: 0 });
+
+    } catch (err) {
+      console.error('Erreur lors du chargement des interventions:', err);
+      error("Erreur de chargement", "Impossible de charger les interventions");
+      setInterventions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -109,10 +103,10 @@ export default function Interventions() {
   ];
 
   const getInterventionsByStatus = (status: string) => {
-    return interventionsData.interventions.filter(intervention => intervention.statut === status);
+    return interventions.filter(intervention => intervention.statut === status);
   };
 
-  const InterventionCard = ({ intervention }: { intervention: any }) => (
+  const InterventionCard = ({ intervention }: { intervention: Intervention }) => (
     <Card className={`mb-3 cursor-pointer hover:shadow-md transition-shadow duration-200 ${getPriorityColor(intervention.priorite)}`}>
       <CardContent className="p-4">
         <div className="space-y-2">
@@ -126,7 +120,7 @@ export default function Interventions() {
           <div className="space-y-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <User className="h-3 w-3" />
-              <span>{intervention.client}</span>
+              <span>{intervention.client_name}</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
@@ -134,29 +128,42 @@ export default function Interventions() {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{intervention.date} {intervention.heure}</span>
+              <span>{intervention.date_intervention} {intervention.heure_intervention}</span>
             </div>
-            {intervention.technicien && (
+            {intervention.technicien_id && (
               <div className="flex items-center gap-1">
                 <Wrench className="h-3 w-3" />
-                <span>{intervention.technicien}</span>
+                <span>Technicien assigné</span>
               </div>
             )}
           </div>
           
           <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-1 text-green-600 font-medium text-sm">
-              <DollarSign className="h-3 w-3" />
-              <span>{intervention.prix}$</span>
-            </div>
+            {intervention.prix_estime && (
+              <div className="flex items-center gap-1 text-green-600 font-medium text-sm">
+                <DollarSign className="h-3 w-3" />
+                <span>{intervention.prix_estime}$</span>
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">
-              ID: {intervention.id}
+              ID: {intervention.id.slice(0, 8)}
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Chargement des interventions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -190,7 +197,7 @@ export default function Interventions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-blue-600">À PLANIFIER</p>
-                <p className="text-3xl font-bold text-blue-800">{interventionsData.stats.aPlanifier}</p>
+                <p className="text-3xl font-bold text-blue-800">{stats.aPlanifier}</p>
               </div>
               <Clock className="h-8 w-8 text-blue-600" />
             </div>
@@ -202,7 +209,7 @@ export default function Interventions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-orange-600">EN COURS</p>
-                <p className="text-3xl font-bold text-orange-800">{interventionsData.stats.enCours}</p>
+                <p className="text-3xl font-bold text-orange-800">{stats.enCours}</p>
               </div>
               <Wrench className="h-8 w-8 text-orange-600" />
             </div>
@@ -214,7 +221,7 @@ export default function Interventions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-green-600">TERMINÉ</p>
-                <p className="text-3xl font-bold text-green-800">{interventionsData.stats.termine}</p>
+                <p className="text-3xl font-bold text-green-800">{stats.termine}</p>
               </div>
               <Calendar className="h-8 w-8 text-green-600" />
             </div>
@@ -226,7 +233,7 @@ export default function Interventions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-purple-600">FACTURÉ</p>
-                <p className="text-3xl font-bold text-purple-800">{interventionsData.stats.facture}</p>
+                <p className="text-3xl font-bold text-purple-800">{stats.facture}</p>
               </div>
               <DollarSign className="h-8 w-8 text-purple-600" />
             </div>
@@ -278,10 +285,26 @@ export default function Interventions() {
               </Card>
             ))}
           </div>
+
+          {interventions.length === 0 && (
+            <Card className="mt-6">
+              <CardContent className="p-12 text-center">
+                <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="title-md text-muted-foreground mb-2">Aucune intervention</h3>
+                <p className="body text-muted-foreground max-w-md mx-auto mb-4">
+                  Aucune intervention n'est actuellement enregistrée dans le système.
+                  Créez votre première intervention pour commencer.
+                </p>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Créer une intervention
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-6">
-          {/* Calendar View Placeholder */}
           <Card>
             <CardHeader>
               <CardTitle className="title-md flex items-center gap-2">
@@ -294,11 +317,11 @@ export default function Interventions() {
                 <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="title-md text-muted-foreground mb-2">Vue Calendrier</h3>
                 <p className="body text-muted-foreground max-w-md mx-auto">
-                  Interface calendrier pour la planification visuelle des interventions avec drag & drop entre les jours.
-                  Intégration avec Google Calendar à venir.
+                  Interface calendrier pour la planification visuelle des interventions.
+                  Configuration requise pour l'intégration complète.
                 </p>
-                <Button variant="outline" className="mt-4">
-                  Ouvrir Calendrier
+                <Button variant="outline" className="mt-4" disabled>
+                  Configuration requise
                 </Button>
               </div>
             </CardContent>
@@ -319,11 +342,11 @@ export default function Interventions() {
             <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="title-md text-muted-foreground mb-2">Carte des Interventions</h3>
             <p className="body text-muted-foreground max-w-md mx-auto">
-              Visualisation des adresses clients avec optimisation automatique des trajets pour les techniciens.
-              Intégration Google Maps/OpenStreetMap à venir.
+              Visualisation des adresses clients avec optimisation automatique des trajets.
+              Intégration Google Maps disponible avec configuration API.
             </p>
-            <Button variant="outline" className="mt-4">
-              Ouvrir Carte
+            <Button variant="outline" className="mt-4" disabled>
+              Configuration Google Maps requise
             </Button>
           </div>
         </CardContent>
