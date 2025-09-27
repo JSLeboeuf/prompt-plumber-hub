@@ -33,22 +33,27 @@ import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 export default function CRM() {
   const { clients, loading: clientsLoading, createClient } = useClients();
   const { leads, loading: leadsLoading } = useLeads();
-  const { canAccess } = useAuth();
+  const { canAccess, loading } = useAuth();
   const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Check permissions
+  // Check permissions with auth loading state
+  if (loading) {
+    return <CRMLoadingSkeleton />;
+  }
+
   if (!canAccess('clients', 'read')) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
-          <p className="body text-muted-foreground">
+          <p className="body text-muted-foreground mb-4">
             Vous n'avez pas les permissions pour accéder au CRM
           </p>
+          <a href="/auth" className="btn btn-primary">Se connecter</a>
         </div>
       </div>
     );
@@ -93,7 +98,7 @@ export default function CRM() {
   });
 
   const handleCreateClient = async (clientData: any) => {
-    if (!canAccess('clients', 'write')) {
+    if (!canAccess('clients', 'create')) {
       showError("Accès refusé", "Vous n'avez pas les permissions pour créer des clients");
       return;
     }
@@ -125,7 +130,7 @@ export default function CRM() {
             Gestion de la relation client et suivi des leads en temps réel
           </p>
         </div>
-        {canAccess('clients', 'write') && (
+        {canAccess('clients', 'create') && (
           <Button 
             className="flex items-center gap-2"
             onClick={() => handleCreateClient({

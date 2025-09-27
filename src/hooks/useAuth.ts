@@ -105,11 +105,13 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, userData?: any) => {
     setLoading(true);
     try {
+      const redirectUrl = `${window.location.origin}/`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: redirectUrl
         }
       });
       
@@ -177,6 +179,9 @@ export const useAuth = () => {
 
   const canAccess = (resource: string, action: string): boolean => {
     if (!profile) return false;
+
+    // Normalize common action aliases
+    const normalizedAction = action === 'write' ? 'create' : action === 'view' ? 'read' : action;
     
     const permissions = {
       admin: {
@@ -194,18 +199,18 @@ export const useAuth = () => {
         interventions: ['read'],
         support: ['create']
       }
-    };
+    } as const;
 
-    const rolePermissions = permissions[profile.role];
+    const rolePermissions = (permissions as any)[profile.role];
     if (!rolePermissions) return false;
 
-    // Admin has access to everything
+    // Admin (or any role with "*") has access to everything
     if (rolePermissions['*']) {
-      return rolePermissions['*'].includes(action);
+      return true;
     }
 
     const resourcePermissions = rolePermissions[resource];
-    return resourcePermissions ? resourcePermissions.includes(action) : false;
+    return resourcePermissions ? resourcePermissions.includes(normalizedAction) : false;
   };
   return {
     user,

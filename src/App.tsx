@@ -16,6 +16,8 @@ import Analytics from "./pages/Analytics";
 import Conformite from "./pages/Conformite";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,7 @@ const App = () => (
           
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="calls" element={<Calls />} />
@@ -45,6 +48,7 @@ const App = () => (
               <Route path="analytics" element={<Analytics />} />
               <Route path="conformite" element={<Conformite />} />
               <Route path="support" element={<Support />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
