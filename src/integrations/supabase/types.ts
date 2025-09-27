@@ -1164,6 +1164,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_client_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_dashboard_metrics_optimized: {
         Args: { time_period?: string }
         Returns: Json

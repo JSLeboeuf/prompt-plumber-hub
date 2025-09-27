@@ -45,7 +45,7 @@ export const useAuditLogs = () => {
 
       const { data, error: fetchError } = await supabase
         .from('audit_logs')
-        .select('id, action, resource_type, timestamp, user_email, metadata')
+        .select('id, user_email, action, resource_type, resource_id, timestamp, metadata')
         .order('timestamp', { ascending: false })
         .limit(limit);
 

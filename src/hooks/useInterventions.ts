@@ -62,9 +62,8 @@ export const useInterventions = () => {
 
       const { data, error: fetchError } = await supabase
         .from('interventions')
-        .select('id, client_name, status, priority, service_type, scheduled_date, created_at')
-        .order('scheduled_date', { ascending: true })
-        .order('scheduled_time', { ascending: true });
+        .select('id, title, client_name, status, priority, scheduled_date, created_at, service_type, address')
+        .order('created_at', { ascending: false });
 
       if (fetchError) {
         throw fetchError;
