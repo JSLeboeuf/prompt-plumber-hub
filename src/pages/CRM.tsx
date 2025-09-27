@@ -25,13 +25,13 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCRMData } from "@/hooks/useOptimizedData";
+import { usePaginatedCRM } from "@/hooks/usePaginatedCRM";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function CRM() {
-  const { clients, leads, loading: dataLoading, createClient } = useCRMData();
+  const { clients, leads, loading: dataLoading, createClient, activeClients, newLeads, loadMore, hasMore, loadingMore } = usePaginatedCRM();
   const { canAccess, loading: authLoading } = useAuth();
   const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -168,8 +168,8 @@ export default function CRM() {
               <div>
                 <p className="label text-muted-foreground">Leads Actifs</p>
                 <p className="text-3xl font-bold animate-scale-in">
-                  {leads.filter(l => l.status === 'nouveau' || l.status === 'en_cours').length}
-                  {leads.filter(l => l.status === 'nouveau').length > 0 && 
+                  {newLeads.length}
+                  {newLeads.length > 0 && 
                     <span className="pulse-ring inline-block w-2 h-2 bg-blue-500 rounded-full ml-2"></span>
                   }
                 </p>
@@ -202,7 +202,7 @@ export default function CRM() {
               <div>
                 <p className="label text-muted-foreground">Clients Actifs</p>
                 <p className="text-3xl font-bold animate-scale-in">
-                  {clients.filter(c => c.status === 'active').length}
+                  {activeClients.length}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600 interactive-icon" />
@@ -448,6 +448,27 @@ export default function CRM() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={loadMore} 
+            disabled={loadingMore}
+            variant="outline"
+            className="w-48"
+          >
+            {loadingMore ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : (
+              'Charger plus de clients'
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

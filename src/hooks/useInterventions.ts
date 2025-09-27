@@ -62,7 +62,7 @@ export const useInterventions = () => {
 
       const { data, error: fetchError } = await supabase
         .from('interventions')
-        .select('*')
+        .select('id, client_name, status, priority, service_type, scheduled_date, created_at')
         .order('scheduled_date', { ascending: true })
         .order('scheduled_time', { ascending: true });
 
@@ -135,7 +135,7 @@ export const useInterventions = () => {
       // Get old values for audit
       const { data: oldData } = await supabase
         .from('interventions')
-        .select('*')
+        .select('id, title, client_name, status, priority, service_type, scheduled_date')
         .eq('id', id)
         .single();
 
@@ -176,7 +176,7 @@ export const useInterventions = () => {
       // Get old values for audit
       const { data: oldData } = await supabase
         .from('interventions')
-        .select('*')
+        .select('id, title, client_name, address, status')
         .eq('id', id)
         .single();
 
@@ -221,7 +221,7 @@ export const useInterventions = () => {
     try {
       const { data, error } = await supabase
         .from('interventions')
-        .select('*')
+        .select('id, title, client_name, service_type, address, scheduled_date')
         .or(`title.ilike.%${query}%,client_name.ilike.%${query}%,address.ilike.%${query}%,service_type.ilike.%${query}%`)
         .order('scheduled_date', { ascending: true });
 

@@ -1168,6 +1168,10 @@ export type Database = {
         Args: { time_period?: string }
         Returns: Json
       }
+      get_dashboard_snapshot: {
+        Args: { time_period?: string }
+        Returns: Json
+      }
       gtrgm_compress: {
         Args: { "": unknown }
         Returns: unknown
