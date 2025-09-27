@@ -34,9 +34,9 @@ export const useAuth = () => {
             .from('user_roles')
             .select('*')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
-          if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+          if (error) throw error;
 
           if (data) {
             setProfile({
@@ -133,21 +133,19 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Listen for auth changes FIRST (sync-only updates)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    // Then fetch existing session
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+      })
+      .finally(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
