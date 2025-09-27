@@ -7,7 +7,7 @@ import { ToastProvider } from "@/components/providers/ToastProvider";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { ModernDashboardLayout } from "./components/layout/ModernDashboardLayout";
 import { SupportWidget } from "./components/support/SupportWidget";
 import { AlertBanner } from "./components/alerts/AlertBanner";
 import Dashboard from "./pages/Dashboard";
@@ -32,20 +32,12 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              {/* Global Alert Banner */}
-              <AlertBanner
-                type="warning"
-                title="Mise à jour système"
-                message="Maintenance programmée ce soir de 2h à 4h - Services limités"
-                dismissible={true}
-              />
-              
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/auth" element={<AuthNew />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
-                    <DashboardLayout />
+                    <ModernDashboardLayout />
                   </ProtectedRoute>
                 }>
                   <Route index element={<Dashboard />} />
@@ -59,9 +51,6 @@ const App = () => (
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              
-              {/* Global Support Widget */}
-              <SupportWidget />
             </BrowserRouter>
           </ToastProvider>
         </AuthProvider>
