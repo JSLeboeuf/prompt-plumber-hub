@@ -32,7 +32,8 @@ export default function Analytics() {
   const { analytics, loading: analyticsLoading, fetchAnalytics } = useAnalytics();
   const { calls } = useEmergencyCalls();
   const { clients } = useClients();
-  const { toast } = useToast();
+  const { canAccess } = useAuth();
+  const { success, error: showError } = useToast();
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -60,10 +61,7 @@ export default function Analytics() {
     setIsRefreshing(true);
     try {
       await fetchAnalytics(selectedPeriod);
-      toast({
-        title: "Données actualisées",
-        description: "Les métriques ont été mises à jour",
-      });
+      success("Données actualisées", "Les métriques ont été mises à jour");
     } catch (error) {
       console.error('Refresh failed:', error);
     } finally {
@@ -107,17 +105,10 @@ export default function Analytics() {
         URL.revokeObjectURL(url);
       }
 
-      toast({
-        title: "Export réussi",
-        description: `Rapport ${format.toUpperCase()} généré avec succès`,
-      });
+      success("Export réussi", `Rapport ${format.toUpperCase()} généré avec succès`);
     } catch (error) {
       console.error('Export failed:', error);
-      toast({
-        title: "Erreur d'export",
-        description: "Impossible de générer le rapport",
-        variant: "destructive"
-      });
+      showError("Erreur d'export", "Impossible de générer le rapport");
     } finally {
       setIsExporting(false);
     }

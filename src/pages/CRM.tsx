@@ -33,7 +33,7 @@ export default function CRM() {
   const { clients, loading: clientsLoading, createClient } = useClients();
   const { leads, loading: leadsLoading } = useLeads();
   const { canAccess } = useAuth();
-  const { toast } = useToast();
+  const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -93,11 +93,7 @@ export default function CRM() {
 
   const handleCreateClient = async (clientData: any) => {
     if (!canAccess('clients', 'write')) {
-      toast({
-        title: "Accès refusé",
-        description: "Vous n'avez pas les permissions pour créer des clients",
-        variant: "destructive"
-      });
+      showError("Accès refusé", "Vous n'avez pas les permissions pour créer des clients");
       return;
     }
 
