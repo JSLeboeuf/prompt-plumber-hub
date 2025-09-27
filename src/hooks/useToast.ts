@@ -23,19 +23,19 @@ export const useToast = () => {
   }, [removeToast]);
 
   const success = useCallback((title: string, message?: string) => {
-    addToast({ type: 'success', title, message });
+    addToast({ type: 'success', title, ...(message && { message }) });
   }, [addToast]);
 
   const error = useCallback((title: string, message?: string) => {
-    addToast({ type: 'error', title, message, persistent: true });
+    addToast({ type: 'error', title, ...(message && { message }), persistent: true });
   }, [addToast]);
 
   const warning = useCallback((title: string, message?: string) => {
-    addToast({ type: 'warning', title, message });
+    addToast({ type: 'warning', title, ...(message && { message }) });
   }, [addToast]);
 
   const info = useCallback((title: string, message?: string) => {
-    addToast({ type: 'info', title, message });
+    addToast({ type: 'info', title, ...(message && { message }) });
   }, [addToast]);
 
   return { toasts, removeToast, success, error, warning, info };
