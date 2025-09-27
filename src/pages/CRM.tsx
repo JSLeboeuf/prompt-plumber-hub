@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import {
   MapPin,
   Calendar,
   TrendingUp,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
 import { 
   Table,
@@ -24,69 +25,56 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-// Mock data for CRM
-const crmData = {
-  clients: [
-    {
-      id: 1,
-      nom: "Jean Dupont",
-      telephone: "+14385550123", 
-      email: "dupont@email.com",
-      score: 85,
-      statut: "actif",
-      adresse: "123 Rue Laval, Montréal",
-      notes: "Client régulier, satisfait des services",
-      derniereActivite: "2h",
-      interventions: 5,
-      valeurVie: 2400
-    },
-    {
-      id: 2,
-      nom: "Marie Martin", 
-      telephone: "+15145550456",
-      email: "martin@email.com", 
-      score: 42,
-      statut: "lead",
-      adresse: "456 Ave Cartier, Québec",
-      notes: "Intéressée par l'entretien annuel",
-      derniereActivite: "3j",
-      interventions: 1,
-      valeurVie: 350
-    },
-    {
-      id: 3,
-      nom: "Pierre Laval",
-      telephone: "+14505550789", 
-      email: "pierre.laval@email.com",
-      score: 72,
-      statut: "actif", 
-      adresse: "789 Boul. Saint-Laurent, Longueuil",
-      notes: "Propriétaire commercial, besoins récurrents",
-      derniereActivite: "1j",
-      interventions: 12,
-      valeurVie: 8900
-    }
-  ],
-  timeline: [
-    { date: "15/09/2025", action: "Intervention plomberie", status: "Satisfait" },
-    { date: "12/09/2025", action: "Appel de suivi", status: "Positif" },
-    { date: "08/09/2025", action: "Devis envoyé", status: "En attente" }
-  ]
-};
+import { useClients, useLeads } from "@/hooks/useProductionData";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 
 export default function CRM() {
+  const { clients, loading: clientsLoading, createClient } = useClients();
+  const { leads, loading: leadsLoading } = useLeads();
+  const { canAccess } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'actif': return 'bg-green-100 text-green-800 border-green-200';
+  // Check permissions
+  if (!canAccess('clients', 'read')) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
+          <p className="body text-muted-foreground">
+            Vous n'avez pas les permissions pour accéder au CRM
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800 border-green-200';
       case 'lead': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'inactif': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const calculateScore = (client: any) => {
+    // Simple scoring algorithm based on activity and service history
+    let score = 50; // Base score
+    
+    if (client.service_history?.length > 5) score += 30;
+    else if (client.service_history?.length > 2) score += 20;
+    else if (client.service_history?.length > 0) score += 10;
+    
+    if (client.email && client.phone) score += 10;
+    if (client.notes) score += 5;
+    if (client.status === 'active') score += 15;
+    
+    return Math.min(100, score);
   };
 
   const getScoreColor = (score: number) => {
@@ -95,13 +83,45 @@ export default function CRM() {
     return 'text-red-600';
   };
 
-  const filteredClients = crmData.clients.filter(client => {
-    const matchesSearch = client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.telephone.includes(searchTerm) ||
-                         client.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "tous" || client.statut === statusFilter;
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (client.phone?.includes(searchTerm)) ||
+                         (client.email?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "tous" || client.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleCreateClient = async (clientData: any) => {
+    if (!canAccess('clients', 'write')) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions pour créer des clients",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      await createClient(clientData);
+    } catch (error) {
+      console.error('Failed to create client:', error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  if (clientsLoading || leadsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <h3 className="title-md text-muted-foreground mb-2">Chargement des données CRM</h3>
+          <p className="body text-muted-foreground">Récupération des clients et leads...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -113,13 +133,26 @@ export default function CRM() {
             CRM Clients
           </h1>
           <p className="subtitle text-muted-foreground">
-            Gestion de la relation client et suivi des leads
+            Gestion de la relation client et suivi des leads en temps réel
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Ajouter Client
-        </Button>
+        {canAccess('clients', 'write') && (
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => handleCreateClient({
+              name: "Nouveau Client",
+              status: "lead"
+            })}
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            Ajouter Client
+          </Button>
+        )}
       </div>
 
       {/* Stats Overview */}
@@ -129,7 +162,7 @@ export default function CRM() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-muted-foreground">Total Clients</p>
-                <p className="text-3xl font-bold">{crmData.clients.length}</p>
+                <p className="text-3xl font-bold">{clients.length}</p>
               </div>
               <Users className="h-8 w-8 text-primary" />
             </div>
@@ -142,7 +175,7 @@ export default function CRM() {
               <div>
                 <p className="label text-muted-foreground">Leads Actifs</p>
                 <p className="text-3xl font-bold">
-                  {crmData.clients.filter(c => c.statut === 'lead').length}
+                  {leads.filter(l => l.status === 'nouveau' || l.status === 'en_cours').length}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -156,7 +189,10 @@ export default function CRM() {
               <div>
                 <p className="label text-muted-foreground">Score Moyen</p>
                 <p className="text-3xl font-bold">
-                  {Math.round(crmData.clients.reduce((acc, c) => acc + c.score, 0) / crmData.clients.length)}%
+                  {clients.length > 0 
+                    ? Math.round(clients.reduce((acc, c) => acc + calculateScore(c), 0) / clients.length)
+                    : 0
+                  }%
                 </p>
               </div>
               <Star className="h-8 w-8 text-yellow-600" />
@@ -168,9 +204,9 @@ export default function CRM() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="label text-muted-foreground">Valeur Totale</p>
+                <p className="label text-muted-foreground">Clients Actifs</p>
                 <p className="text-3xl font-bold">
-                  {(crmData.clients.reduce((acc, c) => acc + c.valeurVie, 0) / 1000).toFixed(0)}k$
+                  {clients.filter(c => c.status === 'active').length}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
@@ -211,9 +247,9 @@ export default function CRM() {
                 Leads
               </Button>
               <Button 
-                variant={statusFilter === "actif" ? "default" : "outline"}
+                variant={statusFilter === "active" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setStatusFilter("actif")}
+                onClick={() => setStatusFilter("active")}
               >
                 Actifs
               </Button>
@@ -225,9 +261,9 @@ export default function CRM() {
       {/* Clients Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="title-md">Base Clients</CardTitle>
+          <CardTitle className="title-md">Base Clients Live</CardTitle>
           <p className="caption text-muted-foreground">
-            {filteredClients.length} client(s) affiché(s)
+            {filteredClients.length} client(s) affiché(s) - Données en temps réel
           </p>
         </CardHeader>
         <CardContent>
@@ -237,158 +273,181 @@ export default function CRM() {
                 <TableHead>Client</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Score Lead</TableHead>
-                <TableHead>Dernière Activité</TableHead>
+                <TableHead>Historique</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Valeur</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.map((client) => (
-                <TableRow key={client.id} className="hover:bg-surface">
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="font-medium">{client.nom}</div>
-                      <div className="caption text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {client.adresse}
+              {filteredClients.map((client) => {
+                const score = calculateScore(client);
+                return (
+                  <TableRow key={client.id} className="hover:bg-surface">
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{client.name}</div>
+                        {client.address && (
+                          <div className="caption text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {client.address}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {client.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3 w-3" />
+                            <a href={`tel:${client.phone}`} className="text-primary hover:underline caption">
+                              {client.phone}
+                            </a>
+                          </div>
+                        )}
+                        {client.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3" />
+                            <a href={`mailto:${client.email}`} className="text-primary hover:underline caption">
+                              {client.email}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <Phone className="h-3 w-3" />
-                        <a href={`tel:${client.telephone}`} className="text-primary hover:underline caption">
-                          {client.telephone}
-                        </a>
+                        <div className={`text-2xl font-bold ${getScoreColor(score)}`}>
+                          {score}%
+                        </div>
+                        <div className="caption text-muted-foreground">
+                          {score >= 80 ? 'Chaud' : score >= 60 ? 'Tiède' : 'Froid'}
+                        </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <Mail className="h-3 w-3" />
-                        <a href={`mailto:${client.email}`} className="text-primary hover:underline caption">
-                          {client.email}
-                        </a>
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{client.service_history?.length || 0} services</span>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`text-2xl font-bold ${getScoreColor(client.score)}`}>
-                        {client.score}%
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${getStatusColor(client.status)}`}>
+                        {client.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {client.tags?.slice(0, 2).map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {(client.tags?.length || 0) > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{(client.tags?.length || 0) - 2}
+                          </Badge>
+                        )}
                       </div>
-                      <div className="caption text-muted-foreground">
-                        {client.score >= 80 ? 'Chaud' : client.score >= 60 ? 'Tiède' : 'Froid'}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.derniereActivite}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${getStatusColor(client.statut)}`}>
-                      {client.statut}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{client.valeurVie}$</div>
-                      <div className="caption text-muted-foreground">{client.interventions} intervention(s)</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost">
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="ghost" onClick={() => setSelectedClient(client)}>
-                            <Eye className="h-4 w-4" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {client.phone && (
+                          <Button size="sm" variant="ghost" onClick={() => window.open(`tel:${client.phone}`)}>
+                            <Phone className="h-4 w-4" />
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <Users className="h-5 w-5" />
-                              Fiche Client - {client.nom}
-                            </DialogTitle>
-                          </DialogHeader>
-                          
-                          {selectedClient && (
-                            <div className="space-y-4">
-                              <div className="grid gap-4">
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Informations de contact</h4>
-                                  <div className="space-y-1 text-sm">
-                                    <div className="flex items-center gap-2">
-                                      <MapPin className="h-4 w-4" />
-                                      {selectedClient.adresse}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Phone className="h-4 w-4" />
-                                      {selectedClient.telephone}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Mail className="h-4 w-4" />
-                                      {selectedClient.email}
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Score & Statut</h4>
-                                  <div className="flex items-center gap-4">
-                                    <Badge className={`border ${getStatusColor(selectedClient.statut)}`}>
-                                      {selectedClient.statut}
-                                    </Badge>
-                                    <span className={`text-lg font-bold ${getScoreColor(selectedClient.score)}`}>
-                                      {selectedClient.score}% (Lead {selectedClient.score >= 80 ? 'chaud' : selectedClient.score >= 60 ? 'tiède' : 'froid'})
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Notes</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {selectedClient.notes}
-                                  </p>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Timeline des activités</h4>
+                        )}
+                        {client.email && (
+                          <Button size="sm" variant="ghost" onClick={() => window.open(`mailto:${client.email}`)}>
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="ghost" onClick={() => setSelectedClient(client)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <Users className="h-5 w-5" />
+                                Fiche Client - {client.name}
+                              </DialogTitle>
+                            </DialogHeader>
+                            
+                            {selectedClient && (
+                              <div className="space-y-4">
+                                <div className="grid gap-4">
                                   <div className="space-y-2">
-                                    {crmData.timeline.map((item, index) => (
-                                      <div key={index} className="flex items-start gap-3 text-sm">
-                                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                                        <div>
-                                          <div className="font-medium">{item.action}</div>
-                                          <div className="text-muted-foreground">{item.date} - {item.status}</div>
+                                    <h4 className="font-medium">Informations de contact</h4>
+                                    <div className="space-y-1 text-sm">
+                                      {selectedClient.address && (
+                                        <div className="flex items-center gap-2">
+                                          <MapPin className="h-4 w-4" />
+                                          {selectedClient.address}
                                         </div>
-                                      </div>
-                                    ))}
+                                      )}
+                                      {selectedClient.phone && (
+                                        <div className="flex items-center gap-2">
+                                          <Phone className="h-4 w-4" />
+                                          {selectedClient.phone}
+                                        </div>
+                                      )}
+                                      {selectedClient.email && (
+                                        <div className="flex items-center gap-2">
+                                          <Mail className="h-4 w-4" />
+                                          {selectedClient.email}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                    <h4 className="font-medium">Score & Statut</h4>
+                                    <div className="flex items-center gap-4">
+                                      <Badge className={`border ${getStatusColor(selectedClient.status)}`}>
+                                        {selectedClient.status}
+                                      </Badge>
+                                      <span className={`text-lg font-bold ${getScoreColor(calculateScore(selectedClient))}`}>
+                                        {calculateScore(selectedClient)}% 
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  {selectedClient.notes && (
+                                    <div className="space-y-2">
+                                      <h4 className="font-medium">Notes</h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {selectedClient.notes}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="space-y-2">
+                                    <h4 className="font-medium">Historique des services</h4>
+                                    <div className="text-sm text-muted-foreground">
+                                      {selectedClient.service_history?.length || 0} intervention(s) enregistrée(s)
+                                    </div>
                                   </div>
                                 </div>
+                                
+                                <div className="flex gap-2 pt-4">
+                                  {canAccess('clients', 'write') && (
+                                    <Button className="flex-1">Modifier</Button>
+                                  )}
+                                  <Button variant="outline" className="flex-1">Historique</Button>
+                                  <Button variant="outline" className="flex-1">Nouveau RDV</Button>
+                                </div>
                               </div>
-                              
-                              <div className="flex gap-2 pt-4">
-                                <Button className="flex-1">Modifier</Button>
-                                <Button variant="outline" className="flex-1">Historique</Button>
-                                <Button variant="outline" className="flex-1">Nouveau RDV</Button>
-                              </div>
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
