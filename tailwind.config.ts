@@ -14,15 +14,34 @@ export default {
     },
     extend: {
       colors: {
+        // Drain Fortin Brand Colors
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          light: "hsl(var(--primary-light))", 
+          dark: "hsl(var(--primary-dark))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        
+        // Status Colors  
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        
+        // Foundation Colors
+        background: "hsl(var(--background))",
+        surface: "hsl(var(--surface))",
+        foreground: "hsl(var(--foreground))",
+        
+        // Component Colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
+        
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
