@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatsGrid } from "@/components/common/StatsGrid";
+import { QuickActions } from "@/components/common/QuickActions";
 import { 
   Phone, 
   Users, 
@@ -70,28 +72,14 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {kpiCards.map((kpi, index) => {
-          const Icon = kpi.icon;
-          return (
-            <Card 
-              key={index} 
-              className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1"
-              onClick={kpi.action}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {kpi.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsGrid 
+        stats={kpiCards.map(kpi => ({
+          title: kpi.title,
+          value: kpi.value,
+          icon: kpi.icon,
+          onClick: kpi.action
+        }))}
+      />
 
       {/* Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -185,31 +173,14 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions Rapides</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: 'Nouveau Call', icon: Phone, path: '/dashboard/calls' },
-              { label: 'Ajouter Client', icon: Users, path: '/dashboard/crm' },
-              { label: 'Intervention', icon: Wrench, path: '/dashboard/interventions' },
-              { label: 'Analytics', icon: TrendingUp, path: '/dashboard/analytics' }
-            ].map((action, index) => (
-              <Button 
-                key={index}
-                variant="outline" 
-                className="h-16 flex-col gap-2"
-                onClick={() => navigate(action.path)}
-              >
-                <action.icon className="h-5 w-5" />
-                <span className="text-xs">{action.label}</span>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <QuickActions
+        actions={[
+          { label: 'Nouveau Call', icon: Phone, onClick: () => navigate('/dashboard/calls') },
+          { label: 'Ajouter Client', icon: Users, onClick: () => navigate('/dashboard/crm') },
+          { label: 'Intervention', icon: Wrench, onClick: () => navigate('/dashboard/interventions') },
+          { label: 'Analytics', icon: TrendingUp, onClick: () => navigate('/dashboard/analytics') }
+        ]}
+      />
     </div>
   );
 }
