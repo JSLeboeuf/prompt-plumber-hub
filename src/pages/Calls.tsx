@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { useEmergencyCalls } from "@/hooks/useSupabaseData";
+import { useEmergencyCalls } from "@/hooks/useProductionData";
 import { useToast } from "@/hooks/useToast";
 import { VAPIService } from "@/services/api";
 import { format } from "date-fns";

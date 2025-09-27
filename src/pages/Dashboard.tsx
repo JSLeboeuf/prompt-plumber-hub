@@ -15,7 +15,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEmergencyCalls, useClients } from "@/hooks/useSupabaseData";
+import { useEmergencyCalls, useClients } from "@/hooks/useProductionData";
 import { useToast } from "@/hooks/useToast";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
