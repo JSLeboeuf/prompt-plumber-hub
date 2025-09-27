@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       colors: {
-        // Drain Fortin Brand Colors
+        // Drain Fortin Brand Colors - Orange Professional Palette
         primary: {
           DEFAULT: "hsl(var(--primary))",
           light: "hsl(var(--primary-light))", 

@@ -7,11 +7,11 @@
 
 @layer base {
   :root {
-    /* Core Brand Colors - Drain Fortin Professional Blue Palette */
-    --primary: 216 82% 59%;          /* #2563eb - Bleu professionnel */
-    --primary-light: 216 90% 68%;    /* #60a5fa - Bleu clair secondaire */
-    --primary-dark: 223 84% 49%;     /* #1d4ed8 - Bleu foncé accent */
-    --primary-foreground: 0 0% 100%; /* Blanc sur bleu */
+    /* Core Brand Colors - Drain Fortin Professional Orange Palette */
+    --primary: 20 91% 48%;           /* #ea580c - Orange professionnel */
+    --primary-light: 24 95% 53%;     /* #fb923c - Orange clair secondaire */
+    --primary-dark: 17 88% 40%;      /* #c2410c - Orange foncé accent */
+    --primary-foreground: 0 0% 100%; /* Blanc sur orange */
 
     /* Neutral Foundation */
     --background: 0 0% 100%;         /* #ffffff - Fond blanc */
@@ -29,7 +29,7 @@
     --secondary-foreground: 220 39% 18%;
     --muted: 214 31% 91%;            /* #e2e8f0 - Bordures grises */
     --muted-foreground: 215 16% 47%; /* Texte muted */
-    --accent: 216 90% 68%;           /* Accent bleu clair */
+    --accent: 24 95% 53%;            /* Accent orange clair */
     --accent-foreground: 0 0% 100%;
     
     /* Status Colors */
@@ -43,7 +43,7 @@
     /* UI Elements */
     --border: 214 31% 91%;           /* #e2e8f0 - Bordures subtiles */
     --input: 214 31% 91%;
-    --ring: 216 82% 59%;             /* Focus ring bleu primaire */
+    --ring: 20 91% 48%;              /* Focus ring orange primaire */
     
     /* Priority Status Colors */
     --priority-urgent: 0 84% 51%;    /* Rouge P1 */
@@ -51,7 +51,7 @@
     --priority-low: 134 61% 37%;     /* Vert P3 */
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(216, 82%, 59%), hsl(223, 84%, 49%));
+    --gradient-primary: linear-gradient(135deg, hsl(20, 91%, 48%), hsl(17, 88%, 40%));
     --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(218, 100%, 98%));
     
     /* Shadows */
@@ -84,7 +84,7 @@
     --card: 220 39% 11%;
     --card-foreground: 0 0% 95%;
     --surface: 220 39% 8%;
-    --primary: 216 90% 68%;
+    --primary: 24 95% 53%;
     --secondary: 220 39% 15%;
     --muted: 220 39% 15%;
     --border: 220 39% 20%;

@@ -1,73 +1,192 @@
-# Welcome to your Lovable project
+# Drain Fortin SaaS Dashboard
 
-## Project info
+## 🚀 Vue d'ensemble
+Dashboard SaaS complet pour la gestion d'interventions de plomberie d'urgence. Interface moderne, responsive, et optimisée pour les équipes terrain.
 
-**URL**: https://lovable.dev/projects/8a8ae8a6-ed9e-4fb5-b7f4-c871227e6418
+## 🎨 Design System
+- **Couleur primaire**: Orange professionnel (#ea580c)
+- **Accessibilité**: WCAG AA/AAA
+- **Responsive**: 320px → 1920px+
+- **Typographie**: Inter/Helvetica
 
-## How can I edit this code?
+## 📦 Modules Principaux
 
-There are several ways of editing your application.
+### 1. 📞 File d'Appels Urgents
+- Tri automatique par priorité
+- Badges colorés (P1/P2/P3)
+- Prise et assignation en 1 clic
 
-**Use Lovable**
+### 2. 👥 CRM Clients
+- Fiches clients rapides
+- Scoring automatique
+- Timeline d'activités
+- Recherche temps réel
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8a8ae8a6-ed9e-4fb5-b7f4-c871227e6418) and start prompting.
+### 3. 🛠️ Interventions
+- Vue Kanban + Calendrier
+- Drag & drop
+- Géolocalisation intégrée
 
-Changes made via Lovable will be committed automatically to this repo.
+### 4. 📊 Analytics
+- KPIs temps réel
+- Graphiques de tendances
+- Export CSV/PDF
 
-**Use your preferred IDE**
+### 5. 🛡️ Conformité & Logs
+- Statuts RGPD/Loi 25
+- Audit trail complet
+- Gestion des droits
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 6. 🤝 Support Widget
+- Chatbot IA intégré
+- Support VAPI vocal
+- SMS Twilio
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 7. 👤 Multi-rôles
+- Admin/Agent/Client
+- Vues et droits distincts
 
-Follow these steps:
+### 8. 🚨 Alertes Système
+- Toasts intelligents
+- Bannières persistantes
+- Auto-dismiss configurable
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🔧 Configuration
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Variables d'environnement
+```env
+# Supabase
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 
-# Step 3: Install the necessary dependencies.
-npm i
+# VAPI (Voice AI)
+VITE_VAPI_PUBLIC_KEY=your-vapi-key
+VITE_VAPI_ASSISTANT_ID=your-assistant-id
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Twilio SMS
+VITE_TWILIO_ACCOUNT_SID=your-account-sid
+
+# n8n Automation
+VITE_N8N_WEBHOOK_URL=https://your-n8n.app/webhook/drain-fortin
+
+# Google Maps
+VITE_GOOGLE_MAPS_API_KEY=your-maps-key
+
+# Environment
+VITE_ENVIRONMENT=development
+```
+
+### Installation
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🌍 Intégrations Cloud
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Supabase
+- **Auth**: Authentification multi-rôles
+- **Database**: CRUD temps réel
+- **Realtime**: Événements live
+- **Storage**: Fichiers clients
 
-**Use GitHub Codespaces**
+### VAPI (Voice AI)
+- **Webhook**: `/api/vapi/webhook`
+- **Transcripts**: Affichage temps réel
+- **Assistant**: Support vocal intelligent
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### n8n (Automation)
+- **Webhooks**: Workflows automatisés
+- **Notifications**: Alertes métier
+- **Intégrations**: APIs tierces
 
-## What technologies are used for this project?
+### Twilio (SMS)
+- **Notifications**: Clients/équipes
+- **Confirmations**: RDV/interventions
+- **Urgences**: Alertes critiques
 
-This project is built with:
+### Google Maps
+- **Géolocalisation**: Clients/interventions
+- **Optimisation**: Trajets équipes
+- **Visualisation**: Cartes interactives
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🏗️ Architecture
 
-## How can I deploy this project?
+### Structure des dossiers
+```
+src/
+├── components/
+│   ├── alerts/          # Système d'alertes
+│   ├── auth/            # Authentification
+│   ├── charts/          # Graphiques
+│   ├── forms/           # Formulaires
+│   ├── layout/          # Layout principal
+│   ├── maps/            # Géolocalisation
+│   ├── support/         # Widget support
+│   └── ui/              # Composants UI
+├── hooks/               # Hooks personnalisés
+├── lib/                 # Utilitaires
+├── pages/               # Pages principales
+├── services/            # Services API
+├── types/               # Types TypeScript
+└── utils/               # Fonctions utiles
+```
 
-Simply open [Lovable](https://lovable.dev/projects/8a8ae8a6-ed9e-4fb5-b7f4-c871227e6418) and click on Share -> Publish.
+### State Management
+- **React Query**: Cache et synchronisation API
+- **Context API**: État global application
+- **Local Storage**: Préférences utilisateur
 
-## Can I connect a custom domain to my Lovable project?
+## 🔒 Sécurité & Conformité
 
-Yes, you can!
+### RGPD/Loi 25
+- Audit trail complet
+- Export de données
+- Gestion des consentements
+- Suppression données
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Authentification
+- JWT sécurisés
+- Rôles granulaires
+- Sessions monitoring
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📱 Responsive Design
+
+### Breakpoints
+- **Mobile**: 320px → 768px
+- **Tablet**: 768px → 1024px
+- **Desktop**: 1024px+
+
+### Navigation mobile
+- Menu hamburger
+- Bottom tabs critiques
+- Swipe gestures
+
+## 🚀 Déploiement
+
+### Prérequis
+1. Compte Supabase configuré
+2. Clés API tierces activées
+3. Variables d'environnement définies
+
+### Production
+```bash
+npm run build
+npm run preview
+```
+
+## 📞 Support Technique
+
+### Contacts urgents
+- **Email**: support@drainfortin.com
+- **Téléphone**: +1 438 601 2625
+- **Chat**: Widget intégré
+
+### Documentation API
+- Supabase: [docs.supabase.com](https://docs.supabase.com)
+- VAPI: [docs.vapi.ai](https://docs.vapi.ai)
+- Twilio: [docs.twilio.com](https://docs.twilio.com)
+
+---
+
+**Drain Fortin SaaS** - Plomberie d'urgence digitalisée 🔧💧
