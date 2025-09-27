@@ -76,7 +76,7 @@ export function AdvancedSearchBar({
   };
 
   const getActiveFilterBadges = () => {
-    const badges: Array<{ filterKey: string; value: string; label: string }> = [];
+    const badges = [] as Array<{ filterKey: string; value: string; label: string }>;
     
     Object.entries(selectedFilters).forEach(([filterKey, values]) => {
       const filter = filters.find(f => f.key === filterKey);

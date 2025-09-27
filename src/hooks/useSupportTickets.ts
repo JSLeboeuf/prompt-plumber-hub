@@ -137,7 +137,7 @@ export const useSupportTickets = () => {
         .single();
 
       // Auto-set timestamps based on status changes
-      const timestampUpdates: Record<string, any> = {};
+      const timestampUpdates = {} as Record<string, string>;
       if (updates.status === 'resolved' && oldData?.status !== 'resolved') {
         timestampUpdates.resolved_at = new Date().toISOString();
       }
