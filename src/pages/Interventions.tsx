@@ -15,105 +15,76 @@ import {
   Loader2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { useInterventions } from "@/hooks/useInterventions";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-
-interface Intervention {
-  id: string;
-  titre: string;
-  client_id?: string;
-  client_name: string;
-  adresse: string;
-  date_intervention: string;
-  heure_intervention: string;
-  statut: 'planifie' | 'en_cours' | 'termine' | 'facture';
-  priorite: 'urgent' | 'normal' | 'faible';
-  description: string;
-  prix_estime?: number;
-  technicien_id?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface InterventionStats {
-  aPlanifier: number;
-  enCours: number;
-  termine: number;
-  facture: number;
-}
 
 export default function Interventions() {
   const [view, setView] = useState("kanban");
-  const [interventions, setInterventions] = useState<Intervention[]>([]);
-  const [stats, setStats] = useState<InterventionStats>({
-    aPlanifier: 0,
-    enCours: 0,
-    termine: 0,
-    facture: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { canAccess } = useAuth();
+  const { interventions, loading, createIntervention, updateIntervention } = useInterventions();
   const { success, error } = useToast();
 
-  useEffect(() => {
-    fetchInterventions();
-  }, []);
+  // Check permissions
+  if (!canAccess('interventions', 'read')) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
+          <p className="body text-muted-foreground">
+            Vous n'avez pas les permissions pour accéder aux interventions
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const fetchInterventions = async () => {
-    try {
-      setLoading(true);
-      
-      // Table interventions non configurée - affichage état vide
-      console.log('Module Interventions: Table non configurée, affichage état vide');
-      setInterventions([]);
-      setStats({ aPlanifier: 0, enCours: 0, termine: 0, facture: 0 });
-
-    } catch (err) {
-      console.error('Erreur lors du chargement des interventions:', err);
-      error("Erreur de chargement", "Impossible de charger les interventions");
-      setInterventions([]);
-    } finally {
-      setLoading(false);
-    }
+  // Calculate real-time stats from actual data
+  const stats = {
+    aPlanifier: interventions.filter(i => i.status === 'planned').length,
+    enCours: interventions.filter(i => i.status === 'in_progress').length,
+    termine: interventions.filter(i => i.status === 'completed').length,
+    facture: interventions.filter(i => i.status === 'invoiced').length
   };
 
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'planifie': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'en_cours': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'termine': return 'bg-green-100 text-green-800 border-green-200'; 
-      case 'facture': return 'bg-purple-100 text-purple-800 border-purple-200';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planned': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'in_progress': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200'; 
+      case 'invoiced': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getPriorityColor = (priorite: string) => {
-    switch (priorite) {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
       case 'urgent': return 'border-l-4 border-l-red-500';
       case 'normal': return 'border-l-4 border-l-orange-500';
-      case 'faible': return 'border-l-4 border-l-green-500';
+      case 'low': return 'border-l-4 border-l-green-500';
       default: return 'border-l-4 border-l-gray-500';
     }
   };
 
   const kanbanColumns = [
-    { id: 'planifie', title: 'À PLANIFIER', color: 'bg-blue-50 border-blue-200' },
-    { id: 'en_cours', title: 'EN COURS', color: 'bg-orange-50 border-orange-200' }, 
-    { id: 'termine', title: 'TERMINÉ', color: 'bg-green-50 border-green-200' },
-    { id: 'facture', title: 'FACTURÉ', color: 'bg-purple-50 border-purple-200' }
+    { id: 'planned', title: 'À PLANIFIER', color: 'bg-blue-50 border-blue-200' },
+    { id: 'in_progress', title: 'EN COURS', color: 'bg-orange-50 border-orange-200' }, 
+    { id: 'completed', title: 'TERMINÉ', color: 'bg-green-50 border-green-200' },
+    { id: 'invoiced', title: 'FACTURÉ', color: 'bg-purple-50 border-purple-200' }
   ];
 
   const getInterventionsByStatus = (status: string) => {
-    return interventions.filter(intervention => intervention.statut === status);
+    return interventions.filter(intervention => intervention.status === status);
   };
 
-  const InterventionCard = ({ intervention }: { intervention: Intervention }) => (
-    <Card className={`mb-3 cursor-pointer hover:shadow-md transition-shadow duration-200 ${getPriorityColor(intervention.priorite)}`}>
+  const InterventionCard = ({ intervention }: { intervention: any }) => (
+    <Card className={`mb-3 cursor-pointer hover:shadow-md transition-shadow duration-200 ${getPriorityColor(intervention.priority)}`}>
       <CardContent className="p-4">
         <div className="space-y-2">
           <div className="flex items-start justify-between">
-            <h4 className="font-medium text-sm">{intervention.titre}</h4>
-            <Badge className={`text-xs ${getStatusColor(intervention.statut)}`}>
-              {intervention.priorite}
+            <h4 className="font-medium text-sm">{intervention.title}</h4>
+            <Badge className={`text-xs ${getStatusColor(intervention.status)}`}>
+              {intervention.priority}
             </Badge>
           </div>
           
@@ -124,25 +95,25 @@ export default function Interventions() {
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
-              <span className="truncate">{intervention.adresse}</span>
+              <span className="truncate">{intervention.address}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{intervention.date_intervention} {intervention.heure_intervention}</span>
+              <span>{intervention.scheduled_date} {intervention.scheduled_time}</span>
             </div>
-            {intervention.technicien_id && (
+            {intervention.assigned_technician && (
               <div className="flex items-center gap-1">
                 <Wrench className="h-3 w-3" />
-                <span>Technicien assigné</span>
+                <span>{intervention.assigned_technician}</span>
               </div>
             )}
           </div>
           
           <div className="flex items-center justify-between pt-2">
-            {intervention.prix_estime && (
+            {intervention.estimated_price && (
               <div className="flex items-center gap-1 text-green-600 font-medium text-sm">
                 <DollarSign className="h-3 w-3" />
-                <span>{intervention.prix_estime}$</span>
+                <span>{intervention.estimated_price}$</span>
               </div>
             )}
             <div className="text-xs text-muted-foreground">
@@ -153,6 +124,27 @@ export default function Interventions() {
       </CardContent>
     </Card>
   );
+
+  const handleCreateIntervention = async () => {
+    if (!canAccess('interventions', 'write')) {
+      error("Accès refusé", "Vous n'avez pas les permissions pour créer des interventions");
+      return;
+    }
+
+    try {
+      await createIntervention({
+        title: "Nouvelle intervention",
+        client_name: "Client à assigner",
+        address: "Adresse à définir",
+        service_type: "general",
+        priority: "normal",
+        status: "planned",
+        scheduled_date: new Date().toISOString().split('T')[0]
+      });
+    } catch (err) {
+      console.error('Failed to create intervention:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -183,7 +175,7 @@ export default function Interventions() {
             <CalendarIcon className="h-4 w-4" />
             Planifier
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={handleCreateIntervention}>
             <Plus className="h-4 w-4" />
             Nouvelle Intervention
           </Button>
@@ -295,7 +287,7 @@ export default function Interventions() {
                   Aucune intervention n'est actuellement enregistrée dans le système.
                   Créez votre première intervention pour commencer.
                 </p>
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2" onClick={handleCreateIntervention}>
                   <Plus className="h-4 w-4" />
                   Créer une intervention
                 </Button>

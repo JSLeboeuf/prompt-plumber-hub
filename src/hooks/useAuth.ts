@@ -6,7 +6,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name?: string;
-  role: 'admin' | 'agent' | 'client';
+  role: 'admin' | 'agent' | 'client' | 'manager' | 'technician';
   avatar_url?: string;
   phone?: string;
   preferences?: {
@@ -22,38 +22,70 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock profile for demo - in production this would come from database
-  const profile: UserProfile = {
-    id: user?.id || '',
-    email: user?.email || '',
-    full_name: 'Admin Fortin',
-    role: 'admin', // Default to admin for demo
-    preferences: {
-      theme: 'light',
-      notifications: true,
-      language: 'fr'
-    }
-  };
+  // Real user profile from database
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
+  // Load real user profile
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const loadProfile = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+          if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+
+          if (data) {
+            setProfile({
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || 'Utilisateur',
+              role: data.role || 'client',
+              preferences: {
+                theme: 'light',
+                notifications: true,
+                language: 'fr'
+              }
+            });
+          } else {
+            // Set default profile if no user role exists
+            setProfile({
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || 'Utilisateur',
+              role: 'client',
+              preferences: {
+                theme: 'light',
+                notifications: true,
+                language: 'fr'
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          // Set fallback profile
+          setProfile({
+            id: user.id,
+            email: user.email || '',
+            full_name: 'Utilisateur',
+            role: 'client',
+            preferences: {
+              theme: 'light',
+              notifications: true,
+              language: 'fr'
+            }
+          });
+        }
+      } else {
+        setProfile(null);
       }
-    );
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    loadProfile();
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
@@ -98,9 +130,45 @@ export const useAuth = () => {
     }
   };
 
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    // Placeholder - in production would update database
-    console.log('Profile update:', updates);
+    // Update profile in database
+    if (profile && user) {
+      try {
+        const { error } = await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: user.id,
+            email: user.email,
+            role: updates.role || profile.role
+          });
+
+        if (error) throw error;
+        
+        setProfile(prev => prev ? { ...prev, ...updates } : null);
+      } catch (error) {
+        console.error('Error updating profile:', error);
+      }
+    }
   };
 
   const hasRole = (role: string): boolean => {
@@ -139,7 +207,6 @@ export const useAuth = () => {
     const resourcePermissions = rolePermissions[resource];
     return resourcePermissions ? resourcePermissions.includes(action) : false;
   };
-
   return {
     user,
     profile,

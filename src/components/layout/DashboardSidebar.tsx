@@ -48,6 +48,12 @@ const navigationItems = [
     description: "Métriques métier"
   },
   {
+    title: "Conformité",
+    href: "/dashboard/conformite",
+    icon: Shield,
+    description: "RGPD & Audit"
+  },
+  {
     title: "Support",
     href: "/dashboard/support",
     icon: HelpCircle,

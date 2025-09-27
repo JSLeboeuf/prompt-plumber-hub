@@ -54,10 +54,13 @@ export interface AuditLog {
   id: string;
   action: string;
   user_id: string;
-  resource: string;
-  details: string;
+  resource_type: string;
+  resource_id?: string;
+  old_values?: Record<string, any>;
+  new_values?: Record<string, any>;
   metadata: Record<string, any>;
-  created_at: string;
+  timestamp: string;
+  user_email?: string;
 }
 
 // Custom hooks for production data
@@ -357,26 +360,23 @@ export function useAuditLogs() {
   const { success, error: showError } = useToast();
 
   const fetchAuditLogs = async () => {
-    // For now, return mock data since audit_logs table doesn't exist
-    setLoading(true);
     try {
-      // Mock audit logs data
-      const mockLogs: AuditLog[] = [
-        {
-          id: '1',
-          action: 'consultation',
-          user_id: 'user1',
-          resource: 'Client Dupont',
-          details: 'Accès fiche client pour intervention',
-          metadata: { ip: '192.168.1.100' },
-          created_at: new Date().toISOString()
-        }
-      ];
-      setLogs(mockLogs);
+      setLoading(true);
+      setError(null);
+      
+      const { data, error: supabaseError } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (supabaseError) throw supabaseError;
+      setLogs((data || []) as any[]);
     } catch (err: any) {
       console.error('Error fetching audit logs:', err);
       setError(err.message);
       showError("Erreur de logs", "Impossible de charger les logs d'audit");
+      setLogs([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -384,8 +384,17 @@ export function useAuditLogs() {
 
   const logAction = async (action: string, resource: string, details: string, metadata: Record<string, any> = {}) => {
     try {
-      // For now, just log to console since audit_logs table doesn't exist
-      console.log('Audit Log:', { action, resource, details, metadata });
+      const { error } = await supabase.rpc('log_audit_action', {
+        p_user_id: null, // Will be set by function
+        p_action: action,
+        p_resource_type: resource,
+        p_resource_id: null,
+        p_old_values: null,
+        p_new_values: { details },
+        p_metadata: metadata
+      });
+
+      if (error) throw error;
     } catch (err: any) {
       console.error('Error logging action:', err);
     }
