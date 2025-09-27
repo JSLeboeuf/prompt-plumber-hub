@@ -61,7 +61,7 @@ export default function Support() {
       setLoading(true);
 
       // Tables support non configurées - affichage état vide
-      console.log('Module Support: Tables non configurées, affichage état vide'); 
+       
       setTickets([]);
       setFaqItems([]);
 
@@ -109,7 +109,7 @@ export default function Support() {
         }
       });
     } catch (err) {
-      console.log('Service de chat non configuré');
+      
     }
   };
 
@@ -158,7 +158,7 @@ export default function Support() {
       description: "Assistant intelligent", 
       subtitle: "Réponse immédiate",
       urgent: false,
-      action: () => console.log("Chatbot activé")
+      action: () => {},
     },
     {
       icon: Mail,
