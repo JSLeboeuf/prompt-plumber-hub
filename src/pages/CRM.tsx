@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useClients, useLeads } from "@/hooks/useProductionData";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function CRM() {
   const { clients, loading: clientsLoading, createClient } = useClients();
@@ -108,15 +109,7 @@ export default function CRM() {
   };
 
   if (clientsLoading || leadsLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <h3 className="title-md text-muted-foreground mb-2">Chargement des données CRM</h3>
-          <p className="body text-muted-foreground">Récupération des clients et leads...</p>
-        </div>
-      </div>
-    );
+    return <CRMLoadingSkeleton />;
   }
 
   return (
@@ -153,59 +146,62 @@ export default function CRM() {
 
       {/* Stats Overview */}
       <div className="grid gap-6 md:grid-cols-4">
-        <Card>
+        <Card className="interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-muted-foreground">Total Clients</p>
-                <p className="text-3xl font-bold">{clients.length}</p>
+                <p className="text-3xl font-bold animate-scale-in">{clients.length}</p>
               </div>
-              <Users className="h-8 w-8 text-primary" />
+              <Users className="h-8 w-8 text-primary interactive-icon" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-muted-foreground">Leads Actifs</p>
-                <p className="text-3xl font-bold">
+                <p className="text-3xl font-bold animate-scale-in">
                   {leads.filter(l => l.status === 'nouveau' || l.status === 'en_cours').length}
+                  {leads.filter(l => l.status === 'nouveau').length > 0 && 
+                    <span className="pulse-ring inline-block w-2 h-2 bg-blue-500 rounded-full ml-2"></span>
+                  }
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+              <TrendingUp className="h-8 w-8 text-blue-600 interactive-icon" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-muted-foreground">Score Moyen</p>
-                <p className="text-3xl font-bold">
+                <p className="text-3xl font-bold animate-scale-in">
                   {clients.length > 0 
                     ? Math.round(clients.reduce((acc, c) => acc + calculateScore(c), 0) / clients.length)
                     : 0
                   }%
                 </p>
               </div>
-              <Star className="h-8 w-8 text-yellow-600" />
+              <Star className="h-8 w-8 text-yellow-600 interactive-icon" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-muted-foreground">Clients Actifs</p>
-                <p className="text-3xl font-bold">
+                <p className="text-3xl font-bold animate-scale-in">
                   {clients.filter(c => c.status === 'active').length}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-green-600 interactive-icon" />
             </div>
           </CardContent>
         </Card>

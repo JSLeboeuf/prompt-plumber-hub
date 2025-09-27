@@ -28,6 +28,7 @@ import { useEmergencyCalls } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/useToast";
 import { VAPIService } from "@/services/api";
 import { format } from "date-fns";
+import { CallsLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function Calls() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -116,6 +117,10 @@ export default function Calls() {
     return matchesSearch && matchesStatus;
   });
 
+  if (loading) {
+    return <CallsLoadingSkeleton />;
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -137,61 +142,62 @@ export default function Calls() {
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-4">
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 bg-red-50 interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-red-600">URGENT</p>
-                <p className="text-3xl font-bold text-red-800">
-                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.urgent}
+                <p className="text-3xl font-bold text-red-800 animate-scale-in">
+                  {stats.urgent}
+                  {stats.urgent > 0 && <span className="pulse-ring inline-block w-2 h-2 bg-red-500 rounded-full ml-2"></span>}
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <AlertTriangle className="h-8 w-8 text-red-600 interactive-icon" />
             </div>
             <p className="caption text-red-700 mt-2">appels en attente</p>
           </CardContent>
         </Card>
 
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-200 bg-orange-50 interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-orange-600">NORMAL</p>
-                <p className="text-3xl font-bold text-orange-800">
-                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.normal}
+                <p className="text-3xl font-bold text-orange-800 animate-scale-in">
+                  {stats.normal}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-orange-600" />
+              <Clock className="h-8 w-8 text-orange-600 interactive-icon" />
             </div>
             <p className="caption text-orange-700 mt-2">appels actifs</p>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-green-200 bg-green-50 interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-green-600">RÉSOLU</p>
-                <p className="text-3xl font-bold text-green-800">
-                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.resolved}
+                <p className="text-3xl font-bold text-green-800 animate-scale-in">
+                  {stats.resolved}
                 </p>
               </div>
-              <PhoneCall className="h-8 w-8 text-green-600" />
+              <PhoneCall className="h-8 w-8 text-green-600 interactive-icon" />
             </div>
             <p className="caption text-green-700 mt-2">appels terminés</p>
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="border-primary/20 bg-primary/5 interactive-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-primary">TOTAL</p>
-                <p className="text-3xl font-bold text-primary">
-                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.total}
+                <p className="text-3xl font-bold text-primary animate-scale-in">
+                  {stats.total}
                 </p>
               </div>
-              <Phone className="h-8 w-8 text-primary" />
+              <Phone className="h-8 w-8 text-primary interactive-icon" />
             </div>
             <p className="caption text-primary mt-2">aujourd'hui</p>
           </CardContent>
@@ -287,7 +293,7 @@ export default function Calls() {
                 ))
               ) : filteredCalls.length > 0 ? (
                 filteredCalls.map((call) => (
-                  <TableRow key={call.id} className="hover:bg-surface">
+                  <TableRow key={call.id} className="interactive-row animate-fade-in">
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
