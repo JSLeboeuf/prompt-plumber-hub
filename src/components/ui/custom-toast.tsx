@@ -102,7 +102,7 @@ export const ToastContainer: React.FC<{
   toasts: Toast[];
   onRemove: (id: string) => void;
 }> = ({ toasts, onRemove }) => {
-  if (toasts.length === 0) return null;
+  if (!toasts || toasts.length === 0) return null;
 
   return (
     <div 
