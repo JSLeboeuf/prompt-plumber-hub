@@ -33,8 +33,8 @@ class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  reset = () => {
+    this.setState({ hasError: false });
   };
 
   render() {
@@ -67,7 +67,7 @@ class ErrorBoundary extends Component<Props, State> {
               )}
               
               <div className="flex gap-2 justify-center">
-                <Button onClick={this.handleRetry} className="gap-2">
+                <Button onClick={this.reset} className="gap-2">
                   <RefreshCw className="h-4 w-4" />
                   Réessayer
                 </Button>
