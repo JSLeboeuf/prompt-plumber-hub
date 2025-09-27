@@ -108,9 +108,9 @@ export default function Dashboard() {
                     className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <Badge variant="destructive" className="text-xs">
-                        {call.priority}
-                      </Badge>
+                       <Badge variant="destructive" className="text-xs">
+                         URGENT
+                       </Badge>
                       <div>
                         <div className="font-medium">{call.customer_name}</div>
                         <div className="text-sm text-muted-foreground">

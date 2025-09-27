@@ -145,7 +145,7 @@ export const TwilioService = {
     return this.sendSms({
       to: phoneNumber,
       message: message,
-      clientName,
+      clientName: clientName || 'Client',
       serviceType: 'custom',
       priority: 'normal'
     });
@@ -230,7 +230,7 @@ export const SupportService = {
     // Trigger n8n workflow for feedback processing
     await N8nService.triggerFeedbackWorkflow({
       ...request,
-      support_id: data.id
+      support_id: (data as any)?.id || 'unknown'
     });
 
     return data;
@@ -268,7 +268,7 @@ export const MapsService = {
 
     try {
       const response = await fetch(
-        `${API_CONFIG.maps.baseUrl}/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
+        `${API_CONFIG.maps?.baseUrl || 'https://maps.googleapis.com/maps/api'}/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
       );
       
       const data = await response.json();
@@ -292,7 +292,7 @@ export const MapsService = {
 
     try {
       const response = await fetch(
-        `${API_CONFIG.maps.baseUrl}/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`
+        `${API_CONFIG.maps?.baseUrl || 'https://maps.googleapis.com/maps/api'}/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`
       );
       
       const data = await response.json();

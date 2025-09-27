@@ -143,6 +143,8 @@ export default function Analytics() {
           clients: clients.length
         }
       };
+      
+      console.log('Exporting data:', exportData);
 
       if (format === 'csv') {
         const csvContent = [

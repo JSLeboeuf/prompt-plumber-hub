@@ -1,6 +1,5 @@
 export const usePaginatedCRM = () => ({
   clients: [],
-  leads: [],
   loading: false,
   loadingMore: false,
   error: null,

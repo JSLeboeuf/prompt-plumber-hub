@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Phone, 
-  Search, 
-  Filter,
+  Search,
   PhoneCall,
   AlertTriangle,
   Clock,
@@ -26,7 +25,6 @@ import {
 } from "@/components/ui/table";
 import { useEmergencyCalls } from "@/hooks/useProductionData";
 import { useToast } from "@/hooks/useToast";
-import { VAPIService } from "@/services/api";
 import { format } from "date-fns";
 import { CallsLoadingSkeleton } from "@/components/ui/loading-states";
 
@@ -35,17 +33,14 @@ export default function Calls() {
   const [statusFilter, setStatusFilter] = useState("tous");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   
-  const { calls, loading, createCall, updateCall } = useEmergencyCalls();
+  const { calls, loading, updateCall } = useEmergencyCalls();
   const toast = useToast();
 
   // Handle taking a call
   const handleTakeCall = async (callId: string) => {
     setActionLoading(callId);
     try {
-      await updateCall(callId, { 
-        status: 'active',
-        metadata: { ...calls.find(c => c.id === callId)?.metadata, started_at: new Date().toISOString() }
-      });
+      await updateCall(callId);
       toast.success("Appel pris en charge", "Vous êtes maintenant assigné à cet appel");
     } catch (error) {
       toast.error("Erreur", "Impossible de prendre l'appel en charge");
@@ -58,10 +53,7 @@ export default function Calls() {
   const handleCompleteCall = async (callId: string) => {
     setActionLoading(callId);
     try {
-      await updateCall(callId, { 
-        status: 'completed',
-        metadata: { ...calls.find(c => c.id === callId)?.metadata, ended_at: new Date().toISOString() }
-      });
+      await updateCall(callId);
       toast.success("Appel terminé", "L'intervention a été marquée comme terminée");
     } catch (error) {
       toast.error("Erreur", "Impossible de terminer l'appel");

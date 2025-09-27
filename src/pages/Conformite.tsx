@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { 
   Shield, 
   CheckCircle,
-  AlertTriangle,
   Download,
   FileText,
-  Eye,
   Clock,
   User,
   Database
@@ -31,8 +29,8 @@ export default function Conformite() {
   const { logs: auditLogs, loading: logsLoading, exportLogs } = useAuditLogs();
   const [gdprRequests, setGdprRequests] = useState<any[]>([]);
   const [loadingGdpr, setLoadingGdpr] = useState(true);
-  const [complianceData, setComplianceData] = useState<any>({});
-  const [loadingCompliance, setLoadingCompliance] = useState(true);
+  const [_complianceData, setComplianceData] = useState<any>({});
+  const [_loadingCompliance, setLoadingCompliance] = useState(true);
 
   // Check permissions
   if (!canAccess('audit', 'read')) {

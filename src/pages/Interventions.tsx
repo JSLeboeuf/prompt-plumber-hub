@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,8 @@ import { useToast } from "@/hooks/useToast";
 export default function Interventions() {
   const [view, setView] = useState("kanban");
   const { canAccess } = useAuth();
-  const { interventions, loading, createIntervention, updateIntervention } = useInterventions();
-  const { success, error } = useToast();
+  const { interventions, loading, createIntervention } = useInterventions();
+  const { error } = useToast();
 
   // Check permissions
   if (!canAccess('interventions', 'read')) {

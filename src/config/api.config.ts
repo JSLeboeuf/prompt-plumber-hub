@@ -35,6 +35,7 @@ export const API_CONFIG = {
     assistantId: 'assistant-id'
   },
   maps: {
-    apiKey: 'key'
+    apiKey: 'key',
+    baseUrl: 'https://maps.googleapis.com/maps/api'
   }
 }

@@ -148,7 +148,7 @@ export class MapsService {
         .join('|');
       
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&waypoints=optimize:true|${waypointsParam}&key=${config.maps.apiKey}`
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin?.lat},${origin?.lng}&destination=${destination?.lat},${destination?.lng}&waypoints=optimize:true|${waypointsParam}&key=${config.maps.apiKey}`
       );
       
       return await response.json();

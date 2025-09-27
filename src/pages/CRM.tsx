@@ -19,7 +19,6 @@ import { calculateClientScore } from "@/utils/scoring";
 export default function CRM() {
   const { 
     clients, 
-    leads, 
     loading: dataLoading, 
     createClient, 
     activeClients, 
@@ -30,7 +29,7 @@ export default function CRM() {
   } = usePaginatedCRM();
   
   const { canAccess } = useAuth();
-  const { success, error: showError } = useToast();
+  const { error: showError } = useToast();
   const { callClient, emailClient } = useClientActions();
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -47,7 +46,7 @@ export default function CRM() {
     defaultFilter: 'tous'
   });
 
-  const handleCreateClient = async (clientData: any) => {
+  const handleCreateClient = async () => {
     if (!canAccess('clients', 'create')) {
       showError("Accès refusé", "Vous n'avez pas les permissions pour créer des clients");
       return;
@@ -55,7 +54,7 @@ export default function CRM() {
 
     try {
       setIsCreating(true);
-      await createClient(clientData);
+      await createClient();
     } catch (error) {
       console.error('Failed to create client:', error);
     } finally {
@@ -63,12 +62,12 @@ export default function CRM() {
     }
   };
 
-  const handleCallClient = (phone: string) => {
-    callClient(phone);
+  const handleCallClient = () => {
+    callClient();
   };
 
-  const handleEmailClient = (email: string) => {
-    emailClient(email);
+  const handleEmailClient = () => {
+    emailClient();
   };
 
   // Calculate average score
@@ -126,10 +125,7 @@ export default function CRM() {
           canAccess('clients', 'create') && (
             <Button 
               className="flex items-center gap-2"
-              onClick={() => handleCreateClient({
-                name: "Nouveau Client",
-                status: "lead"
-              })}
+              onClick={handleCreateClient}
               disabled={isCreating}
             >
               {isCreating ? (
