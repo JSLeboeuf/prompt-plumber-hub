@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { SupportWidget } from "./components/support/SupportWidget";
 import { AlertBanner } from "./components/alerts/AlertBanner";
@@ -21,7 +22,8 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ToastProvider>
+      <ErrorBoundary>
+        <ToastProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -50,7 +52,8 @@ const App = () => (
           {/* Global Support Widget */}
           <SupportWidget />
         </BrowserRouter>
-      </ToastProvider>
+        </ToastProvider>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );

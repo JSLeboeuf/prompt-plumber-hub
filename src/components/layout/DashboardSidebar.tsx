@@ -74,6 +74,7 @@ export const DashboardSidebar = ({ collapsed = false }: DashboardSidebarProps) =
   return (
     <aside className={cn(
       "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-card border-r border-border transition-all duration-300 z-40",
+      "lg:block hidden", // Hidden on mobile by default
       collapsed ? "w-16" : "w-80"
     )}>
       <div className="flex flex-col h-full">

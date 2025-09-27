@@ -25,7 +25,8 @@ export const DashboardHeader = ({ onToggleSidebar }: DashboardHeaderProps) => {
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="lg:hidden"
+            className="lg:hidden p-2 hover:bg-surface"
+            aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -42,13 +43,13 @@ export const DashboardHeader = ({ onToggleSidebar }: DashboardHeaderProps) => {
         </div>
 
         {/* Center Section - Search */}
-        <div className="flex-1 max-w-md mx-8 hidden md:block">
+        <div className="flex-1 max-w-md mx-4 lg:mx-8 hidden md:block">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Rechercher clients, interventions..."
-              className="pl-10 bg-surface border-0"
+              className="pl-10 bg-surface border-0 h-10"
             />
           </div>
         </div>
@@ -56,7 +57,7 @@ export const DashboardHeader = ({ onToggleSidebar }: DashboardHeaderProps) => {
         {/* Right Section */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
+          <Button variant="ghost" size="sm" className="relative p-2 hover:bg-surface" aria-label="Notifications">
             <Bell className="h-5 w-5" />
             <Badge 
               variant="destructive" 

@@ -20,12 +20,13 @@ import { useToast } from "@/hooks/useToast";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { DashboardMetrics } from "@/types/dashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { calls, loading: callsLoading } = useEmergencyCalls();
   const { clients, loading: clientsLoading } = useClients();
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<DashboardMetrics | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const toast = useToast();
 
@@ -38,9 +39,15 @@ export default function Dashboard() {
         });
         
         if (error) throw error;
-        setAnalytics(data);
+        // Safely convert Supabase Json to DashboardMetrics
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          setAnalytics(data as unknown as DashboardMetrics);
+        }
       } catch (error) {
-        console.error('Failed to load analytics:', error);
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to load analytics:', error);
+        }
         toast.error("Erreur", "Impossible de charger les métriques");
       } finally {
         setLoadingAnalytics(false);
