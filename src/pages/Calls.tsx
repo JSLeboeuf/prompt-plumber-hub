@@ -77,21 +77,22 @@ export default function Calls() {
     total: calls.length
   };
 
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'en_cours': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'en_attente': return 'bg-orange-100 text-orange-800 border-orange-200'; 
-      case 'nouveau': return 'bg-red-100 text-red-800 border-red-200';
-      case 'resolu': return 'bg-green-100 text-green-800 border-green-200';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-200'; 
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getPriorityColor = (priorite: string) => {
-    switch (priorite) {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
       case 'P1': return 'bg-red-500';
       case 'P2': return 'bg-orange-500'; 
-      case 'P3': return 'bg-green-500';
+      case 'P3': return 'bg-yellow-500';
+      case 'normal': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
   };
