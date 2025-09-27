@@ -24,7 +24,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useOptimizedData } from "@/hooks/useOptimizedData";
+import { useEmergencyCalls, useClients } from "@/hooks/useProductionData";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -39,27 +39,9 @@ export default function Analytics() {
   const { canAccess } = useAuth();
   const { success, error: showError } = useToast();
   
-  // Optimized data hooks with caching and real-time
-  const { 
-    data: calls, 
-    loading: callsLoading, 
-    error: callsError, 
-    refresh: refreshCalls 
-  } = useOptimizedData<EmergencyCall>({
-    table: 'vapi_calls',
-    limit: 100,
-    cacheDuration: 2 * 60 * 1000 // 2 minutes cache
-  });
-
-  const { 
-    data: clients, 
-    loading: clientsLoading, 
-    error: clientsError,
-    refresh: refreshClients 
-  } = useOptimizedData<Client>({
-    table: 'clients',
-    limit: 50
-  });
+  // Use production data hooks instead of optimized hooks to avoid TypeScript issues
+  const { calls, loading: callsLoading, error: callsError, fetchCalls } = useEmergencyCalls();
+  const { clients, loading: clientsLoading, error: clientsError, fetchClients } = useClients();
 
   // Analytics state
   const [analytics, setAnalytics] = useState<DashboardMetrics | null>(null);
@@ -131,8 +113,8 @@ export default function Analytics() {
     try {
       await Promise.all([
         fetchAnalytics(selectedPeriod),
-        refreshCalls(),
-        refreshClients()
+        fetchCalls(),
+        fetchClients()
       ]);
       success("Données actualisées", "Les métriques ont été mises à jour");
     } catch (error) {
@@ -140,7 +122,7 @@ export default function Analytics() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [fetchAnalytics, selectedPeriod, refreshCalls, refreshClients, success]);
+  }, [fetchAnalytics, selectedPeriod, fetchCalls, fetchClients, success]);
 
   // Enhanced export with error handling
   const handleExport = useCallback(async (format: 'csv' | 'pdf') => {
@@ -443,7 +425,7 @@ export default function Analytics() {
               ) : callsError ? (
                 <AnalyticsErrorState 
                   error={callsError} 
-                  onRetry={refreshCalls}
+                  onRetry={fetchCalls}
                   variant="card"
                 />
               ) : (
