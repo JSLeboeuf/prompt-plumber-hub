@@ -143,6 +143,54 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       availability: {
         Row: {
           available: boolean | null
@@ -325,6 +373,203 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          created_by: string | null
+          helpful_count: number | null
+          id: string
+          is_published: boolean | null
+          metadata: Json | null
+          order_index: number | null
+          question: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          helpful_count?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          order_index?: number | null
+          question: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          helpful_count?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          order_index?: number | null
+          question?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      gdpr_requests: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          justification: string | null
+          metadata: Json | null
+          processed_at: string | null
+          processed_by: string | null
+          request_type: string
+          requested_data: string[] | null
+          response: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          justification?: string | null
+          metadata?: Json | null
+          processed_at?: string | null
+          processed_by?: string | null
+          request_type: string
+          requested_data?: string[] | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          justification?: string | null
+          metadata?: Json | null
+          processed_at?: string | null
+          processed_by?: string | null
+          request_type?: string
+          requested_data?: string[] | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      interventions: {
+        Row: {
+          actual_price: number | null
+          address: string
+          assigned_technician: string | null
+          city: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          completion_notes: string | null
+          created_at: string
+          customer_signature: string | null
+          description: string | null
+          equipment_needed: string[] | null
+          estimated_duration: number | null
+          estimated_price: number | null
+          id: string
+          invoice_sent_at: string | null
+          metadata: Json | null
+          notes: string | null
+          paid_at: string | null
+          photos: string[] | null
+          postal_code: string | null
+          priority: string
+          scheduled_date: string
+          scheduled_time: string | null
+          service_type: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_price?: number | null
+          address: string
+          assigned_technician?: string | null
+          city?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          customer_signature?: string | null
+          description?: string | null
+          equipment_needed?: string[] | null
+          estimated_duration?: number | null
+          estimated_price?: number | null
+          id?: string
+          invoice_sent_at?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          paid_at?: string | null
+          photos?: string[] | null
+          postal_code?: string | null
+          priority?: string
+          scheduled_date: string
+          scheduled_time?: string | null
+          service_type: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_price?: number | null
+          address?: string
+          assigned_technician?: string | null
+          city?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          customer_signature?: string | null
+          description?: string | null
+          equipment_needed?: string[] | null
+          estimated_duration?: number | null
+          estimated_price?: number | null
+          id?: string
+          invoice_sent_at?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          paid_at?: string | null
+          photos?: string[] | null
+          postal_code?: string | null
+          priority?: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          service_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interventions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           adresse: string | null
@@ -375,6 +620,59 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      planning: {
+        Row: {
+          break_type: string | null
+          created_at: string
+          date: string
+          end_time: string
+          id: string
+          intervention_id: string | null
+          is_available: boolean | null
+          notes: string | null
+          start_time: string
+          technician_id: string
+          technician_name: string
+          updated_at: string
+        }
+        Insert: {
+          break_type?: string | null
+          created_at?: string
+          date: string
+          end_time: string
+          id?: string
+          intervention_id?: string | null
+          is_available?: boolean | null
+          notes?: string | null
+          start_time: string
+          technician_id: string
+          technician_name: string
+          updated_at?: string
+        }
+        Update: {
+          break_type?: string | null
+          created_at?: string
+          date?: string
+          end_time?: string
+          id?: string
+          intervention_id?: string | null
+          is_available?: boolean | null
+          notes?: string | null
+          start_time?: string
+          technician_id?: string
+          technician_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_intervention_id_fkey"
+            columns: ["intervention_id"]
+            isOneToOne: false
+            referencedRelation: "interventions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_rules: {
         Row: {
@@ -625,6 +923,83 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          client_email: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          closed_at: string | null
+          created_at: string
+          description: string
+          feedback: string | null
+          id: string
+          metadata: Json | null
+          priority: string
+          resolution: string | null
+          resolved_at: string | null
+          satisfaction_rating: number | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          client_email?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          satisfaction_rating?: number | null
+          status?: string
+          subject: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          satisfaction_rating?: number | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_constraints: {
         Row: {
           action: string
@@ -701,6 +1076,39 @@ export type Database = {
             referencedColumns: ["call_id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          permissions: string[] | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          permissions?: string[] | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          permissions?: string[] | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       vapi_calls: {
         Row: {
@@ -780,6 +1188,25 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      log_audit_action: {
+        Args: {
+          p_action: string
+          p_metadata?: Json
+          p_new_values?: Json
+          p_old_values?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -794,7 +1221,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "technician" | "agent" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -921,6 +1348,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "technician", "agent", "client"],
+    },
   },
 } as const
