@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Phone, 
   Search, 
@@ -12,7 +13,8 @@ import {
   Clock,
   User,
   MapPin,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 import { 
   Table,
@@ -22,66 +24,58 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-
-// Mock data for calls
-const callsData = {
-  stats: {
-    urgent: 3,
-    normal: 7, 
-    resolved: 12,
-    total: 22
-  },
-  calls: [
-    {
-      id: 1,
-      heure: "14:32",
-      client: "Jean Dupont", 
-      telephone: "+1 438 555-0123",
-      statut: "en_cours",
-      priorite: "P1",
-      description: "Tuyau éclaté cuisine - Inondation",
-      adresse: "123 Rue Laval, Montréal",
-      assignedTo: "Tech-01"
-    },
-    {
-      id: 2,
-      heure: "14:28", 
-      client: "Marie Martin",
-      telephone: "+1 514 555-0456", 
-      statut: "en_attente",
-      priorite: "P2",
-      description: "Chasse d'eau qui fuit",
-      adresse: "456 Ave Cartier, Québec",
-      assignedTo: null
-    },
-    {
-      id: 3,
-      heure: "14:15",
-      client: "Pierre Laval", 
-      telephone: "+1 450 555-0789",
-      statut: "nouveau",
-      priorite: "P1", 
-      description: "Canalisation bouchée - Urgence",
-      adresse: "789 Boul. Saint-Laurent, Longueuil",
-      assignedTo: null
-    },
-    {
-      id: 4,
-      heure: "13:58",
-      client: "Sophie Gagnon",
-      telephone: "+1 438 555-0321", 
-      statut: "resolu",
-      priorite: "P2",
-      description: "Réparation robinet terminée",
-      adresse: "321 Rue Ontario, Montréal", 
-      assignedTo: "Tech-02"
-    }
-  ]
-};
+import { useEmergencyCalls } from "@/hooks/useSupabaseData";
+import { useToast } from "@/hooks/useToast";
+import { VAPIService } from "@/services/api";
+import { format } from "date-fns";
 
 export default function Calls() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  const { calls, loading, createCall, updateCall } = useEmergencyCalls();
+  const toast = useToast();
+
+  // Handle taking a call
+  const handleTakeCall = async (callId: string) => {
+    setActionLoading(callId);
+    try {
+      await updateCall(callId, { 
+        status: 'active',
+        metadata: { ...calls.find(c => c.id === callId)?.metadata, started_at: new Date().toISOString() }
+      });
+      toast.success("Appel pris en charge", "Vous êtes maintenant assigné à cet appel");
+    } catch (error) {
+      toast.error("Erreur", "Impossible de prendre l'appel en charge");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle completing a call
+  const handleCompleteCall = async (callId: string) => {
+    setActionLoading(callId);
+    try {
+      await updateCall(callId, { 
+        status: 'completed',
+        metadata: { ...calls.find(c => c.id === callId)?.metadata, ended_at: new Date().toISOString() }
+      });
+      toast.success("Appel terminé", "L'intervention a été marquée comme terminée");
+    } catch (error) {
+      toast.error("Erreur", "Impossible de terminer l'appel");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Calculate real-time stats from actual data
+  const stats = {
+    urgent: calls.filter(c => ['P1', 'P2'].includes(c.priority) && c.status !== 'completed').length,
+    normal: calls.filter(c => c.priority === 'normal' && c.status !== 'completed').length,
+    resolved: calls.filter(c => c.status === 'completed').length,
+    total: calls.length
+  };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -102,21 +96,22 @@ export default function Calls() {
     }
   };
 
-  const getStatusLabel = (statut: string) => {
-    switch (statut) {
-      case 'en_cours': return 'En cours';
-      case 'en_attente': return 'En attente';
-      case 'nouveau': return 'Nouveau';
-      case 'resolu': return 'Résolu';
-      default: return statut;
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'En cours';
+      case 'pending': return 'En attente';
+      case 'completed': return 'Terminé';
+      case 'cancelled': return 'Annulé';
+      default: return status;
     }
   };
 
-  const filteredCalls = callsData.calls.filter(call => {
-    const matchesSearch = call.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         call.telephone.includes(searchTerm) ||
-                         call.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "tous" || call.statut === statusFilter;
+
+  const filteredCalls = calls.filter(call => {
+    const matchesSearch = call.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         call.phone_number?.includes(searchTerm) ||
+                         call.metadata?.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "tous" || call.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -146,7 +141,9 @@ export default function Calls() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-red-600">URGENT</p>
-                <p className="text-3xl font-bold text-red-800">{callsData.stats.urgent}</p>
+                <p className="text-3xl font-bold text-red-800">
+                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.urgent}
+                </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
@@ -159,7 +156,9 @@ export default function Calls() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-orange-600">NORMAL</p>
-                <p className="text-3xl font-bold text-orange-800">{callsData.stats.normal}</p>
+                <p className="text-3xl font-bold text-orange-800">
+                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.normal}
+                </p>
               </div>
               <Clock className="h-8 w-8 text-orange-600" />
             </div>
@@ -172,7 +171,9 @@ export default function Calls() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="label text-green-600">RÉSOLU</p>
-                <p className="text-3xl font-bold text-green-800">{callsData.stats.resolved}</p>
+                <p className="text-3xl font-bold text-green-800">
+                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.resolved}
+                </p>
               </div>
               <PhoneCall className="h-8 w-8 text-green-600" />
             </div>
@@ -180,16 +181,18 @@ export default function Calls() {
           </CardContent>
         </Card>
 
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-primary/20 bg-primary/5">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="label text-blue-600">TOTAL</p>
-                <p className="text-3xl font-bold text-blue-800">{callsData.stats.total}</p>
+                <p className="label text-primary">TOTAL</p>
+                <p className="text-3xl font-bold text-primary">
+                  {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : stats.total}
+                </p>
               </div>
-              <Phone className="h-8 w-8 text-blue-600" />
+              <Phone className="h-8 w-8 text-primary" />
             </div>
-            <p className="caption text-blue-700 mt-2">aujourd'hui</p>
+            <p className="caption text-primary mt-2">aujourd'hui</p>
           </CardContent>
         </Card>
       </div>
@@ -222,25 +225,25 @@ export default function Calls() {
                 Tous
               </Button>
               <Button 
-                variant={statusFilter === "nouveau" ? "default" : "outline"}
+                variant={statusFilter === "pending" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setStatusFilter("nouveau")}
+                onClick={() => setStatusFilter("pending")}
               >
-                Nouveaux
+                En attente
               </Button>
               <Button 
-                variant={statusFilter === "en_cours" ? "default" : "outline"}
+                variant={statusFilter === "active" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setStatusFilter("en_cours")}
+                onClick={() => setStatusFilter("active")}
               >
                 En cours
               </Button>
               <Button 
-                variant={statusFilter === "resolu" ? "default" : "outline"}
+                variant={statusFilter === "completed" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setStatusFilter("resolu")}
+                onClick={() => setStatusFilter("completed")}
               >
-                Résolus
+                Terminés
               </Button>
             </div>
           </div>
@@ -269,74 +272,111 @@ export default function Calls() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCalls.map((call) => (
-                <TableRow key={call.id} className="hover:bg-surface">
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{call.heure}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="font-medium flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {call.client}
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredCalls.length > 0 ? (
+                filteredCalls.map((call) => (
+                  <TableRow key={call.id} className="hover:bg-surface">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">
+                          {format(new Date(call.created_at), 'HH:mm')}
+                        </span>
                       </div>
-                      <div className="caption text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {call.adresse}
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          {call.customer_name}
+                        </div>
+                        {call.metadata?.address && (
+                          <div className="caption text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {call.metadata.address}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <a 
-                      href={`tel:${call.telephone}`}
-                      className="text-primary hover:underline"
-                    >
-                      {call.telephone}
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${getStatusColor(call.statut)}`}>
-                      {getStatusLabel(call.statut)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(call.priorite)}`} />
-                      <span className="font-medium">{call.priorite}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs truncate" title={call.description}>
-                      {call.description}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {call.statut === 'nouveau' && (
-                        <Button size="sm" variant="default">
-                          Prendre
+                    </TableCell>
+                    <TableCell>
+                      <a 
+                        href={`tel:${call.phone_number}`}
+                        className="text-primary hover:underline"
+                      >
+                        {call.phone_number}
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${getStatusColor(call.status)}`}>
+                        {getStatusLabel(call.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${getPriorityColor(call.priority)}`} />
+                        <span className="font-medium">{call.priority}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={call.metadata?.description}>
+                        {call.metadata?.description || 'Intervention standard'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {call.status === 'pending' && (
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => handleTakeCall(call.id)}
+                            disabled={actionLoading === call.id}
+                          >
+                            {actionLoading === call.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Prendre'
+                            )}
+                          </Button>
+                        )}
+                        {call.status === 'active' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleCompleteCall(call.id)}
+                            disabled={actionLoading === call.id}
+                          >
+                            {actionLoading === call.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Terminer'
+                            )}
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost">
+                          <Phone className="h-4 w-4" />
                         </Button>
-                      )}
-                      {call.statut === 'en_attente' && (
-                        <Button size="sm" variant="outline">
-                          Assigner
-                        </Button>
-                      )}
-                      {call.statut === 'en_cours' && (
-                        <Button size="sm" variant="outline">
-                          Terminer
-                        </Button>
-                      )}
-                      <Button size="sm" variant="ghost">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Aucun appel trouvé
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

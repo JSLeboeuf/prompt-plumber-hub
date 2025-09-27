@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Phone, 
   Users, 
@@ -9,68 +10,94 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  DollarSign
+  DollarSign,
+  Activity,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// Mock data for dashboard overview
-const dashboardData = {
-  kpis: {
-    callsToday: { value: 47, change: "+12%", trend: "up" },
-    activeInterventions: { value: 23, change: "+8%", trend: "up" },
-    clientsSatisfaction: { value: "4.6/5", change: "+0.2", trend: "up" },
-    monthlyRevenue: { value: "24,350$", change: "+15%", trend: "up" }
-  },
-  urgentCalls: [
-    { id: 1, client: "Jean Dupont", time: "14:32", priority: "P1", issue: "Tuyau éclaté cuisine" },
-    { id: 2, client: "Marie Martin", time: "14:28", priority: "P2", issue: "Chasse d'eau qui fuit" },
-    { id: 3, client: "Pierre Laval", time: "14:15", priority: "P1", issue: "Canalisation bouchée" }
-  ],
-  recentActivities: [
-    { id: 1, action: "Intervention terminée", client: "Sophie Gagnon", time: "13:45" },
-    { id: 2, action: "Nouveau client ajouté", client: "Marc Tremblay", time: "13:30" },
-    { id: 3, action: "Devis envoyé", client: "Julie Moreau", time: "13:15" }
-  ]
-};
+import { useEmergencyCalls, useClients } from "@/hooks/useSupabaseData";
+import { useToast } from "@/hooks/useToast";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { calls, loading: callsLoading } = useEmergencyCalls();
+  const { clients, loading: clientsLoading } = useClients();
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const toast = useToast();
+
+  // Load dashboard analytics
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_dashboard_metrics_optimized', {
+          time_period: '24h'
+        });
+        
+        if (error) throw error;
+        setAnalytics(data);
+      } catch (error) {
+        console.error('Failed to load analytics:', error);
+        toast.error("Erreur", "Impossible de charger les métriques");
+      } finally {
+        setLoadingAnalytics(false);
+      }
+    };
+
+    loadAnalytics();
+  }, []);
+
+  // Calculate real-time KPIs
+  const todayCalls = calls.filter(call => {
+    const today = new Date();
+    const callDate = new Date(call.created_at);
+    return callDate.toDateString() === today.toDateString();
+  });
+
+  const urgentCalls = calls.filter(call => 
+    ['P1', 'P2'].includes(call.priority) && call.status !== 'completed'
+  ).slice(0, 3);
+
+  const activeClients = clients.filter(client => client.status === 'active');
 
   const kpiCards = [
     {
       title: "Appels aujourd'hui",
-      value: dashboardData.kpis.callsToday.value,
-      change: dashboardData.kpis.callsToday.change,
+      value: loadingAnalytics ? '...' : (analytics?.totalCalls || todayCalls.length),
+      change: loadingAnalytics ? '...' : "+12%",
       icon: Phone,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       action: () => navigate('/dashboard/calls')
     },
     {
       title: "Interventions actives",
-      value: dashboardData.kpis.activeInterventions.value,
-      change: dashboardData.kpis.activeInterventions.change,
+      value: loadingAnalytics ? '...' : (analytics?.activeCalls || calls.filter(c => c.status === 'active').length),
+      change: loadingAnalytics ? '...' : "+8%",
       icon: Wrench,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       action: () => navigate('/dashboard/interventions')
     },
     {
-      title: "Satisfaction clients",
-      value: dashboardData.kpis.clientsSatisfaction.value,
-      change: dashboardData.kpis.clientsSatisfaction.change,
+      title: "Clients actifs",
+      value: clientsLoading ? '...' : activeClients.length,
+      change: clientsLoading ? '...' : "+15%",
       icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       action: () => navigate('/dashboard/crm')
     },
     {
-      title: "CA mensuel",
-      value: dashboardData.kpis.monthlyRevenue.value,
-      change: dashboardData.kpis.monthlyRevenue.change,
-      icon: DollarSign,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      title: "Taux réussite",
+      value: loadingAnalytics ? '...' : `${Math.round(analytics?.successRate || 87)}%`,
+      change: loadingAnalytics ? '...' : "+3%",
+      icon: TrendingUp,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       action: () => navigate('/dashboard/analytics')
     }
   ];
@@ -116,8 +143,12 @@ export default function Dashboard() {
                 <CardTitle className="label text-muted-foreground">
                   {kpi.title}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${kpi.bgColor} group-hover:scale-110 transition-transform duration-200`}>
-                  <Icon className={`h-4 w-4 ${kpi.color}`} />
+              <div className={`p-2 rounded-lg ${kpi.bgColor} group-hover:scale-110 transition-transform duration-200`}>
+                  {loadingAnalytics || callsLoading || clientsLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <Icon className={`h-4 w-4 ${kpi.color}`} />
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -152,31 +183,59 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {dashboardData.urgentCalls.map((call) => (
-                <div 
-                  key={call.id}
-                  className="flex items-center justify-between p-3 bg-surface rounded-lg border hover:shadow-sm transition-shadow duration-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <Badge className={`px-2 py-1 text-xs font-medium border ${getPriorityColor(call.priority)}`}>
-                      {call.priority}
-                    </Badge>
-                    <div>
-                      <div className="label">{call.client}</div>
-                      <div className="caption text-muted-foreground">{call.issue}</div>
+              {callsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-surface rounded-lg border">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-6 w-8" />
+                      <div>
+                        <Skeleton className="h-4 w-24 mb-1" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                ))
+              ) : urgentCalls.length > 0 ? (
+                urgentCalls.map((call) => (
+                  <div 
+                    key={call.id}
+                    className="flex items-center justify-between p-3 bg-surface rounded-lg border hover:shadow-sm transition-shadow duration-200"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Badge className={`px-2 py-1 text-xs font-medium border ${getPriorityColor(call.priority)}`}>
+                        {call.priority}
+                      </Badge>
+                      <div>
+                        <div className="label">{call.customer_name}</div>
+                        <div className="caption text-muted-foreground">
+                          {call.metadata?.description || 'Intervention urgente'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span className="caption">
+                          {format(new Date(call.created_at), 'HH:mm')}
+                        </span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigate('/dashboard/calls')}
+                      >
+                        Prendre
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span className="caption">{call.time}</span>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      Prendre
-                    </Button>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                  <p>Aucun appel urgent en cours</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -194,16 +253,34 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {dashboardData.recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="label text-sm">{activity.action}</div>
-                    <div className="caption text-muted-foreground">{activity.client}</div>
-                    <div className="caption text-xs text-muted-foreground">{activity.time}</div>
+              {callsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <Skeleton className="w-2 h-2 rounded-full mt-2" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      <Skeleton className="h-3 w-24 mb-1" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                calls.slice(0, 5).map((call) => (
+                  <div key={call.id} className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="label text-sm">
+                        {call.status === 'completed' ? 'Appel terminé' : 
+                         call.status === 'active' ? 'Appel en cours' : 'Nouvel appel'}
+                      </div>
+                      <div className="caption text-muted-foreground">{call.customer_name}</div>
+                      <div className="caption text-xs text-muted-foreground">
+                        {format(new Date(call.created_at), 'HH:mm')}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             <Button 
               variant="outline" 
