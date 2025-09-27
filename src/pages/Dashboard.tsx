@@ -13,12 +13,12 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useLightweightDashboard } from "@/hooks/useLightweightDashboard";
+import { useUltraFastDashboard } from "@/hooks/useUltraFastDashboard";
 import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { metrics, recentCalls, urgentCalls, loading } = useLightweightDashboard();
+  const { metrics, recentCalls, urgentCalls, loading } = useUltraFastDashboard();
 
   const kpiCards = [
     {

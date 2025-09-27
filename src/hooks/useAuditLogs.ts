@@ -45,7 +45,7 @@ export const useAuditLogs = () => {
 
       const { data, error: fetchError } = await supabase
         .from('audit_logs')
-        .select('*')
+        .select('id, action, resource_type, timestamp, user_email, metadata')
         .order('timestamp', { ascending: false })
         .limit(limit);
 
@@ -159,7 +159,7 @@ export const useAuditLogs = () => {
     try {
       const { data, error } = await supabase
         .from('audit_logs')
-        .select('*')
+        .select('id, action, resource_type, timestamp, user_email, metadata')
         .or(`action.ilike.%${query}%,resource_type.ilike.%${query}%,user_email.ilike.%${query}%`)
         .order('timestamp', { ascending: false })
         .limit(100);
@@ -180,7 +180,7 @@ export const useAuditLogs = () => {
     try {
       let query = supabase
         .from('audit_logs')
-        .select('*')
+        .select('id, action, resource_type, timestamp, user_email, old_values, new_values')
         .order('timestamp', { ascending: false });
 
       if (startDate) {

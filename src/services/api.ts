@@ -45,7 +45,7 @@ export class VAPIService {
   static async getCallTranscript(callId: string) {
     const { data, error } = await supabase
       .from('call_transcripts')
-      .select('*')
+      .select('id, customer_phone, service_type, customer_name, priority, status, created_at')
       .eq('call_id', callId)
       .order('timestamp', { ascending: true });
     

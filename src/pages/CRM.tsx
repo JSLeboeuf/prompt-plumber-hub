@@ -25,13 +25,13 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useSimpleCRM } from "@/hooks/useSimpleCRM";
+import { usePaginatedCRM } from "@/hooks/usePaginatedCRM";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function CRM() {
-  const { clients, leads, loading: dataLoading, createClient, activeClients, newLeads } = useSimpleCRM();
+  const { clients, leads, loading: dataLoading, createClient, activeClients, newLeads, loadMore, hasMore, loadingMore } = usePaginatedCRM();
   const { canAccess, loading: authLoading } = useAuth();
   const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -448,6 +448,27 @@ export default function CRM() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={loadMore} 
+            disabled={loadingMore}
+            variant="outline"
+            className="w-48"
+          >
+            {loadingMore ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : (
+              'Charger plus de clients'
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
