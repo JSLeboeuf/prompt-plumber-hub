@@ -23,11 +23,12 @@ export default function CRM() {
     newLeads, 
     loadMore, 
     hasMore, 
-    loadingMore 
+    loadingMore,
+    createClient
   } = usePaginatedCRM();
   
   const { canAccess } = useAuth();
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   const { callClient, emailClient } = useClientActions();
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -52,10 +53,18 @@ export default function CRM() {
 
     try {
       setIsCreating(true);
-      // Mock client creation for demo
-      console.log('Creating client...');
+      const result = await createClient({
+        name: 'Nouveau Client',
+        email: null,
+        phone: null,
+        status: 'active'
+      });
+      
+      if (result.success) {
+        showSuccess('Client créé', 'Le nouveau client a été ajouté avec succès');
+      }
     } catch (error) {
-      console.error('Failed to create client:', error);
+      showError('Erreur', 'Impossible de créer le client');
     } finally {
       setIsCreating(false);
     }

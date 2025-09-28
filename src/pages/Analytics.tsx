@@ -130,21 +130,6 @@ export default function Analytics() {
     try {
       // Simulate export process with validation
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const exportData = {
-        period: selectedPeriod,
-        analytics: analytics || {},
-        calls: calls.slice(0, 100), // Limit for performance
-        clients: clients.slice(0, 100),
-        exportDate: new Date().toISOString(),
-        exportFormat: format,
-        totalRecords: {
-          calls: calls.length,
-          clients: clients.length
-        }
-      };
-      
-      console.log('Exporting data:', exportData);
 
       if (format === 'csv') {
         const csvContent = [

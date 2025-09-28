@@ -1,18 +1,20 @@
+import { toast as sonnerToast, Toaster as SonnerToaster } from 'sonner';
+
 export const toast = {
   success: (title: string, options?: { description?: string }) => {
-    console.log('Success:', title, options?.description);
+    sonnerToast.success(title, { description: options?.description });
   },
   error: (title: string, options?: { description?: string }) => {
-    console.log('Error:', title, options?.description);
+    sonnerToast.error(title, { description: options?.description });
   },
   info: (title: string, options?: { description?: string }) => {
-    console.log('Info:', title, options?.description);
+    sonnerToast.info(title, { description: options?.description });
   },
   warning: (title: string, options?: { description?: string }) => {
-    console.log('Warning:', title, options?.description);
+    sonnerToast.warning(title, { description: options?.description });
   }
 };
 
 export function Toaster() {
-  return null;
+  return <SonnerToaster position="top-right" richColors closeButton />;
 }

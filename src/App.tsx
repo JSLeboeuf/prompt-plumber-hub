@@ -2,6 +2,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { Toaster } from "@/components/ui/sonner";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -49,6 +50,7 @@ const App = () => (
               </Routes>
               </Suspense>
             </BrowserRouter>
+            <Toaster />
           </ToastProvider>
         </AuthProvider>
       </ErrorBoundary>

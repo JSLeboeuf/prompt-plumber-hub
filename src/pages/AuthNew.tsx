@@ -32,7 +32,7 @@ export default function AuthNew() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: 'contact@autoscaleai.ca', // Pré-rempli pour les tests
+      email: '',
       password: ''
     }
   });
