@@ -1160,6 +1160,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_customer_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
