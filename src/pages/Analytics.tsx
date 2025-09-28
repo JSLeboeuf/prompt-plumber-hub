@@ -473,7 +473,7 @@ export default function Analytics() {
                               {call.duration ? `${call.duration}min` : 'En cours...'}
                             </TableCell>
                             <TableCell>
-                              {new Date(call.created_at).toLocaleString('fr-FR')}
+                              {new Date(call.created_at || Date.now()).toLocaleString('fr-FR')}
                             </TableCell>
                           </TableRow>
                         ))

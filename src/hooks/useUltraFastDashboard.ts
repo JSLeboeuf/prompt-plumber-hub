@@ -1,22 +1,97 @@
-export const useUltraFastDashboard = () => ({
-  stats: {
-    totalClients: 0,
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface DashboardMetrics {
+  totalCalls: number;
+  activeCalls: number;
+  activeClients: number;
+  successRate: number;
+}
+
+interface Call {
+  id: string;
+  customer_name: string | null;
+  created_at: string | null;
+  status: string | null;
+  priority: string | null;
+}
+
+export const useUltraFastDashboard = () => {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalCalls: 0,
-    totalInterventions: 0,
-    activeClients: 0
-  },
-  metrics: {
-    totalCalls: 100,
-    activeCalls: 10,
-    activeClients: 50,
-    successRate: 95
-  },
-  recentCalls: [
-    {id: '1', priority: 'high', customer_name: 'Test Client', created_at: new Date().toISOString(), status: 'active'}
-  ],
-  urgentCalls: [
-    {id: '2', status: 'pending', customer_name: 'Urgent Client', created_at: new Date().toISOString()}
-  ],
-  loading: false,
-  error: null
-})
+    activeCalls: 0,
+    activeClients: 0,
+    successRate: 0
+  });
+  const [recentCalls, setRecentCalls] = useState<Call[]>([]);
+  const [urgentCalls, setUrgentCalls] = useState<Call[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch dashboard metrics
+      const { data: metricsData, error: metricsError } = await supabase
+        .rpc('get_dashboard_metrics_optimized', { time_period: '24h' });
+
+      if (metricsError) throw metricsError;
+
+      // Fetch recent calls
+      const { data: callsData, error: callsError } = await supabase
+        .from('vapi_calls')
+        .select('id, customer_name, created_at, status, priority')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (callsError) throw callsError;
+
+      // Fetch urgent calls
+      const { data: urgentData, error: urgentError } = await supabase
+        .from('vapi_calls')
+        .select('id, customer_name, created_at, status, priority')
+        .in('priority', ['P1', 'P2'])
+        .neq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (urgentError) throw urgentError;
+
+      setMetrics({
+        totalCalls: (metricsData as any)?.totalCalls || 0,
+        activeCalls: (metricsData as any)?.activeCalls || 0,
+        activeClients: (metricsData as any)?.activeClients || 0,
+        successRate: (metricsData as any)?.successRate || 0
+      });
+
+      setRecentCalls(callsData || []);
+      setUrgentCalls(urgentData || []);
+
+    } catch (err) {
+      console.error('Dashboard data fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  return {
+    stats: {
+      totalClients: metrics.activeClients,
+      totalCalls: metrics.totalCalls,
+      totalInterventions: 0,
+      activeClients: metrics.activeClients
+    },
+    metrics,
+    recentCalls,
+    urgentCalls,
+    loading,
+    error
+  };
+};

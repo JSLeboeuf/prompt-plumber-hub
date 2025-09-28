@@ -64,7 +64,7 @@ export default function Calls() {
 
   // Calculate real-time stats from actual data
   const stats = {
-    urgent: calls.filter(c => ['P1', 'P2'].includes(c.priority) && c.status !== 'completed').length,
+    urgent: calls.filter(c => ['P1', 'P2'].includes(c.priority || '') && (c.status || '') !== 'completed').length,
     normal: calls.filter(c => c.priority === 'normal' && c.status !== 'completed').length,
     resolved: calls.filter(c => c.status === 'completed').length,
     total: calls.length
@@ -103,8 +103,9 @@ export default function Calls() {
 
   const filteredCalls = calls.filter(call => {
     const matchesSearch = call.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         call.phone_number?.includes(searchTerm) ||
-                         call.metadata?.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                          call.phone_number?.includes(searchTerm) ||
+                          call.metadata && typeof call.metadata === 'object' && 
+                          JSON.stringify(call.metadata).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "tous" || call.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -290,7 +291,7 @@ export default function Calls() {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {format(new Date(call.created_at), 'HH:mm')}
+                          {format(new Date(call.created_at || Date.now()), 'HH:mm')}
                         </span>
                       </div>
                     </TableCell>
@@ -298,7 +299,7 @@ export default function Calls() {
                       <div className="space-y-1">
                         <div className="font-medium flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          {call.customer_name}
+                          {call.customer_name || 'Client Inconnu'}
                         </div>
                         {call.metadata?.address && (
                           <div className="caption text-muted-foreground flex items-center gap-1">
@@ -310,21 +311,21 @@ export default function Calls() {
                     </TableCell>
                     <TableCell>
                       <a 
-                        href={`tel:${call.phone_number}`}
+                        href={`tel:${call.phone_number || ''}`}
                         className="text-primary hover:underline"
                       >
-                        {call.phone_number}
+                        {call.phone_number || 'N/A'}
                       </a>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`border ${getStatusColor(call.status)}`}>
-                        {getStatusLabel(call.status)}
+                      <Badge className={`border ${getStatusColor(call.status || 'unknown')}`}>
+                        {getStatusLabel(call.status || 'unknown')}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${getPriorityColor(call.priority)}`} />
-                        <span className="font-medium">{call.priority}</span>
+                        <div className={`w-3 h-3 rounded-full ${getPriorityColor(call.priority || 'normal')}`} />
+                        <span className="font-medium">{call.priority || 'normal'}</span>
                       </div>
                     </TableCell>
                     <TableCell>

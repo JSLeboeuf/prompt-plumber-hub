@@ -114,7 +114,7 @@ export default function Dashboard() {
                       <div>
                         <div className="font-medium">{call.customer_name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {format(new Date(call.created_at), 'HH:mm')}
+                      {format(new Date(call.created_at || Date.now()), 'HH:mm')}
                         </div>
                       </div>
                     </div>
@@ -155,7 +155,7 @@ export default function Dashboard() {
                       {call.customer_name}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(call.created_at), 'HH:mm')}
+                      {format(new Date(call.created_at || Date.now()), 'HH:mm')}
                     </div>
                   </div>
                 </div>
