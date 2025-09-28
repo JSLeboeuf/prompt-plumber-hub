@@ -85,14 +85,14 @@ export default function AuthNew() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <main className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-lg">Chargement de l'authentification...</div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
+    <main className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <Card>
           <CardHeader>
@@ -171,6 +171,6 @@ export default function AuthNew() {
           </Card>
         )}
       </div>
-    </div>
+    </main>
   );
 }

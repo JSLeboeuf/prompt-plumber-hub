@@ -22,6 +22,8 @@ export const PermissionGuard = ({
     return <>{loadingComponent}</>;
   }
 
+import { Link } from 'react-router-dom';
+
   if (!canAccess(resource, action)) {
     return fallback || (
       <div className="flex items-center justify-center h-64">
@@ -30,7 +32,7 @@ export const PermissionGuard = ({
           <p className="body text-muted-foreground mb-4">
             Vous n'avez pas les permissions pour accéder à {resource}
           </p>
-          <a href="/auth" className="btn btn-primary">Se connecter</a>
+          <Link to="/auth" className="btn btn-primary">Se connecter</Link>
         </div>
       </div>
     );
