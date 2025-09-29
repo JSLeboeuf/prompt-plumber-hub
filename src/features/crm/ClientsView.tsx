@@ -19,7 +19,7 @@ export function ClientsView() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch clients
-  const { data: clients = [], isLoading, refetch } = useQuery({
+  const { data: clients = [] as any[], isLoading, refetch } = useQuery({
     queryKey: ['clients', filters],
     queryFn: () => clientService.getClients(filters),
     refetchInterval: 30000 // Refresh every 30 seconds
@@ -217,7 +217,7 @@ function ClientDetails({
   onClose: () => void;
   onUpdate?: () => void;
 }) {
-  const { data: history, isLoading } = useQuery({
+  const { data: history, isLoading } = useQuery<{ interventions: any[]; sms: any[] }>({
     queryKey: ['client-history', client.id],
     queryFn: () => clientService.getClientHistory(client.id),
     enabled: !!client.id

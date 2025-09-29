@@ -29,21 +29,21 @@ export function CRMDashboard() {
   });
 
   // Fetch active alerts
-  const { data: alerts = [], refetch: refetchAlerts } = useQuery({
+  const { data: alerts = [] as any[], refetch: refetchAlerts } = useQuery({
     queryKey: ['active-alerts'],
     queryFn: () => alertService.getActiveAlerts(),
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
   // Fetch today's interventions
-  const { data: todayInterventions = [] } = useQuery({
+  const { data: todayInterventions = [] as any[] } = useQuery({
     queryKey: ['today-interventions'],
     queryFn: () => interventionService.getTodayInterventions(),
     refetchInterval: 60000
   });
 
   // Fetch recent SMS
-  const { data: recentSMS = [] } = useQuery({
+  const { data: recentSMS = [] as any[] } = useQuery({
     queryKey: ['recent-sms'],
     queryFn: () => smsService.getSMSMessages({ 
       dateFrom: new Date().toISOString().split('T')[0] || ""
@@ -54,7 +54,7 @@ export function CRMDashboard() {
   // Setup real-time subscriptions
   useEffect(() => {
     // Subscribe to alerts
-    const alertChannel = realtimeService.subscribeToAlerts((payload) => {
+    const alertChannel = realtimeService.subscribeToAlerts((payload: any) => {
       if (payload.eventType === 'INSERT') {
         const newAlert = payload.new as InternalAlert;
         setRealtimeAlerts(prev => [newAlert, ...prev]);
@@ -67,7 +67,7 @@ export function CRMDashboard() {
     });
 
     // Subscribe to SMS
-    const smsChannel = realtimeService.subscribeToSMS((payload) => {
+    const smsChannel = realtimeService.subscribeToSMS((payload: any) => {
       if (payload.eventType === 'INSERT') {
         toast.success('📱 SMS envoyé', {
           description: 'Un nouveau SMS a été envoyé à l\'équipe'
@@ -76,7 +76,7 @@ export function CRMDashboard() {
     });
 
     // Subscribe to interventions
-    const interventionChannel = realtimeService.subscribeToInterventions((payload) => {
+    const interventionChannel = realtimeService.subscribeToInterventions((payload: any) => {
       if (payload.eventType === 'UPDATE' && payload.new.status === 'completed') {
         toast.success('✅ Intervention complétée', {
           description: `Service complété pour ${payload.new.client_name}`
