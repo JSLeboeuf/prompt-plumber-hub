@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "src/services/__tests__/**/*",
+    "src/services/api/**/*",
+    "src/services/analytics/stats.ts",
+    "src/services/api.ts",
+    "src/services/api.secure.ts",
+    "node_modules"
+  ]
+}

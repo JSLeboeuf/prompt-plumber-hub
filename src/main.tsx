@@ -13,13 +13,13 @@ if (import.meta.env.DEV) {
         // axe nécessite React et ReactDOM; avec React 18 createRoot, on l'appelle simplement
         axe(React as typeof React, ReactDOM, 1000);
       } catch (error) {
-        logger.warn('axe-core/react setup failed', error as Error);
+        logger.warn('axe-core/react setup failed', { error: String(error) });
       }
     }).catch((error) => {
-      logger.warn('Failed to import React for axe-core', error as Error);
+      logger.warn('Failed to import React for axe-core', { error: String(error) });
     });
   }).catch((error) => {
-    logger.warn('axe-core/react dynamic import failed', error as Error);
+    logger.warn('axe-core/react dynamic import failed', { error: String(error) });
   });
 }
 

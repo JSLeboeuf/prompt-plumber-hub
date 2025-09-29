@@ -112,23 +112,21 @@ export default function Interventions() {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{intervention.scheduled_date} {intervention.scheduled_time}</span>
+              <span>{intervention.scheduled_date}</span>
             </div>
-            {intervention.assigned_technician && (
+            {intervention.technician && (
               <div className="flex items-center gap-1">
                 <Wrench className="h-3 w-3" />
-                <span>{intervention.assigned_technician}</span>
+                <span>{intervention.technician}</span>
               </div>
             )}
           </div>
           
           <div className="flex items-center justify-between pt-2">
-            {intervention.estimated_price && (
-              <div className="flex items-center gap-1 text-green-600 font-medium text-sm">
-                <DollarSign className="h-3 w-3" />
-                <span>{intervention.estimated_price}$</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1 text-green-600 font-medium text-sm">
+              <DollarSign className="h-3 w-3" />
+              <span>Prix estimé</span>
+            </div>
             <div className="text-xs text-muted-foreground">
               ID: {intervention.id.slice(0, 8)}
             </div>

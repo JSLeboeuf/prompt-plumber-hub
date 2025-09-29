@@ -56,13 +56,13 @@ if (options.context !== undefined) this.context = options.context;
     if (options.details !== undefined) this.details = options.details;
 
     // Set user message with fallback
-this.userMessage = options.userMessage ||
-                      UserMessages[options.code as keyof typeof UserMessages] ||
-                      'Une erreur inattendue s\'est produite.';
+    const userMessageKey = options.code as keyof typeof UserMessages;
+    const defaultMessage = UserMessages[userMessageKey] || 'Une erreur inattendue s\'est produite.';
+    this.userMessage = options.userMessage || defaultMessage;
 
     // Preserve the original error stack if provided
-if (options.cause) {
-      this.stack = options.cause.stack;
+    if (options.cause) {
+      if (options.cause.stack) this.stack = options.cause.stack;
       // preserve cause when supported
       // @ts-ignore
       this.cause = options.cause;

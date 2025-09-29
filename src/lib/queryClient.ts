@@ -30,16 +30,21 @@ export async function apiRequest(
   const url = endpoint.startsWith("http") ? endpoint : API_BASE_URL + endpoint;
 
   try {
-    const response = await fetch(url, {
+    const fetchOptions: RequestInit = {
       method,
       headers: {
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: init?.credentials ?? "include",
       ...init,
-    });
+    };
+
+    if (body !== undefined) {
+      fetchOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
       const errorBody = await response.text();

@@ -41,7 +41,7 @@ export default function CRM() {
     statusFilter,
     setStatusFilter,
     filteredItems: filteredClients
-  } = useFilters(clients, {
+  } = useFilters(clients as unknown as Record<string, unknown>[], {
     searchFields: ['name', 'phone', 'email'],
     defaultFilter: 'tous'
   });
@@ -88,7 +88,7 @@ export default function CRM() {
   // Calculate real average score from clients data
   const averageScore = clients.length > 0
     ? Math.round(clients.reduce((sum, client) => {
-        const score = calculateClientScore(client);
+        const score = calculateClientScore(client as any);
         return sum + score;
       }, 0) / clients.length)
     : 0;
@@ -186,11 +186,11 @@ export default function CRM() {
               <CRMLoadingSkeleton />
             ) : (
               <DraggableClientTable
-                clients={filteredClients}
+                clients={filteredClients as any}
                 onViewClient={setSelectedClient}
                 onCallClient={(phone: string) => handleCallClient({ phone })}
                 onEmailClient={(email: string) => handleEmailClient({ email })}
-                onReorder={handleReorderClients}
+                onReorder={(reorderedClients: any[]) => handleReorderClients(reorderedClients as any)}
               />
             )}
           </CardContent>

@@ -507,7 +507,9 @@ const monitoringData: ErrorMonitoringData = {
       totalErrors += errorCount.count;
 
       const [source, _code] = key.split(':');
-      errorsBySource[source] = (errorsBySource[source] || 0) + errorCount.count;
+      if (source) {
+        errorsBySource[source] = (errorsBySource[source] || 0) + errorCount.count;
+      }
 
       topErrors.push({ key, count: errorCount.count });
     }

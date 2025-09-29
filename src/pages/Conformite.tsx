@@ -60,7 +60,14 @@ export default function Conformite() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setGdprRequests(data || []);
+        setGdprRequests((data || []).map(request => ({
+          id: request.id,
+          type: request.request_type,
+          status: request.status,
+          created_at: request.created_at,
+          user_email: request.email,
+          description: request.justification || ''
+        })));
       } catch (error) {
         logger.error('Error fetching GDPR requests', error as Error);
         setGdprRequests([]);
@@ -89,7 +96,7 @@ export default function Conformite() {
         };
         setComplianceData(metrics);
       } catch (error) {
-        logger.error('Error fetching compliance data:', error);
+        logger.error('Error fetching compliance data:', error instanceof Error ? error : new Error(String(error)));
       } finally {
         setLoadingCompliance(false);
       }
@@ -258,18 +265,18 @@ export default function Conformite() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        <span className="font-medium">{log.user_email || 'Système'}</span>
+                        <span className="font-medium">{(log as any).user_email || 'Système'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">{log.resource_type}</span>
-                      {log.resource_id && (
-                        <div className="text-xs text-muted-foreground">ID: {log.resource_id.slice(0, 8)}...</div>
+                      <span className="font-medium">{(log as any).resource_type || 'Unknown'}</span>
+                      {(log as any).resource_id && (
+                        <div className="text-xs text-muted-foreground">ID: {(log as any).resource_id.slice(0, 8)}...</div>
                       )}
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {log.new_values ? JSON.stringify(log.new_values).slice(0, 50) + '...' : 'Action système'}
+                        {(log as any).new_values ? JSON.stringify((log as any).new_values).slice(0, 50) + '...' : 'Action système'}
                       </span>
                     </TableCell>
                   </TableRow>
@@ -315,8 +322,8 @@ export default function Conformite() {
                   {gdprRequests.slice(0, 3).map((request) => (
                     <div key={request.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
                       <div>
-                        <div className="font-medium text-sm">{request.request_type}</div>
-                        <div className="caption text-muted-foreground">{request.email}</div>
+                        <div className="font-medium text-sm">{request.type}</div>
+                        <div className="caption text-muted-foreground">{request.user_email}</div>
                         <div className="caption text-muted-foreground">
                           {new Date(request.created_at).toLocaleDateString('fr-FR')}
                         </div>

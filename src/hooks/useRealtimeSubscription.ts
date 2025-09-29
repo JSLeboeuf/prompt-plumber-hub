@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 // RealtimeChannel type import removed to avoid type conflicts with 'postgres_changes' event
 import type {
-  RealtimePayload,
   RealtimeInsertPayload,
   RealtimeUpdatePayload,
   RealtimeDeletePayload
