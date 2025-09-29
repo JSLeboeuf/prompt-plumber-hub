@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Bug, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +18,8 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: AppError;
-  errorInfo?: ErrorInfo;
+  error: AppError | null;
+  errorInfo: ErrorInfo | null;
   retryCount: number;
 }
 

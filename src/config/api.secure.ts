@@ -60,7 +60,7 @@ export const apiConfig = {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'X-Client-Version': '1.0.0',
-  },
+  } as Record<string, string>,
 
   // Request timeout
   timeout: 10000,

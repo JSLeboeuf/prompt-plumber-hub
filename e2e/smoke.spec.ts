@@ -24,7 +24,7 @@ test.describe('Legacy Integration Smoke Tests', () => {
     await page.waitForTimeout(3000);
 
     // Debug: check what's actually on the page
-    const _pageContent = await page.content();
+    // Verify page loads without content inspection
     console.warn('Page title:', await page.title());
     console.warn('URL:', page.url());
 

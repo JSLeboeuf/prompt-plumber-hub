@@ -20,8 +20,8 @@ interface Client {
 interface ClientRowContentProps {
   client: Client;
   onViewClient: (client: Client) => void;
-  onCallClient?: (phone: string) => void;
-  onEmailClient?: (email: string) => void;
+  onCallClient: ((phone: string) => void) | undefined;
+  onEmailClient: ((email: string) => void) | undefined;
 }
 
 export const ClientRowContent = ({ client, onViewClient, onCallClient, onEmailClient }: ClientRowContentProps) => {
