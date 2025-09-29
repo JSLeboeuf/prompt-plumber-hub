@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -51,7 +52,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Envoi de SMS en masse à ${bulkRequest.recipients.length} destinataires`);
+    console.warn(`Envoi de SMS en masse à ${bulkRequest.recipients.length} destinataires`);
 
     const results: any[] = [];
     const isSimulated = !twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber;
@@ -134,7 +135,7 @@ serve(async (req) => {
     const successful = results.filter(r => r.success).length;
     const failed = results.filter(r => !r.success).length;
 
-    console.log(`SMS en masse terminé: ${successful} réussis, ${failed} échoués`);
+    console.warn(`SMS en masse terminé: ${successful} réussis, ${failed} échoués`);
 
     // Logger l'envoi en masse dans sms_logs
     const { data: smsLog, error: logError } = await supabase

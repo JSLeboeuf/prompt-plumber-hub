@@ -17,7 +17,7 @@ export interface KPICard {
   title: string;
   value: string | number;
   change: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   color: string;
   bgColor: string;
   action: () => void;

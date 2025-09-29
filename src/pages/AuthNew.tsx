@@ -69,8 +69,8 @@ export default function AuthNew() {
         }
       }
       
-    } catch (error: any) {
-      const errorMessage = error.message || 'Une erreur est survenue';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
       setLastError(errorMessage);
       setDebugInfo(`Erreur: ${errorMessage}`);
     }

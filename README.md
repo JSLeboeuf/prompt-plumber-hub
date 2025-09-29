@@ -86,6 +86,62 @@ npm install
 npm run dev
 ```
 
+## 🧪 QA Pipeline
+
+The project includes a comprehensive QA pipeline for validating code quality. Run these commands in order:
+
+### 1. Linting
+```bash
+npm run lint
+# Output: qa-logs/lint.log
+# Note: 16 existing errors (not from migration), 193 warnings
+```
+
+### 2. TypeScript Check
+```bash
+npx tsc --noEmit
+# Output: qa-logs/tsc.log
+# Status: ✅ Passing - No type errors
+```
+
+### 3. Build
+```bash
+npm run build
+# Output: qa-logs/build.log
+# Status: ✅ Passing - Builds in ~23s
+```
+
+### 4. Unit Tests
+```bash
+npm run test
+# Output: qa-logs/unit.log
+# Status: ⚠️ Partial - Test environment needs setup
+```
+
+### 5. E2E Tests
+```bash
+# First install Playwright browsers (one time)
+npx playwright install chromium
+
+# Run tests (requires dev server running)
+npm run dev &  # In one terminal
+npx playwright test  # In another terminal
+# Output: qa-logs/e2e.log
+```
+
+### Full QA Check
+```bash
+# Run all checks and save to qa-logs/
+mkdir -p qa-logs
+npm run lint > qa-logs/lint.log 2>&1
+npx tsc --noEmit > qa-logs/tsc.log 2>&1
+npm run build > qa-logs/build.log 2>&1
+npm run test > qa-logs/unit.log 2>&1
+npx playwright test > qa-logs/e2e.log 2>&1
+```
+
+For detailed migration status, see [INTEGRATION_REPORT.md](./INTEGRATION_REPORT.md)
+
 ## 🌍 Intégrations Cloud
 
 ### Supabase

@@ -5,15 +5,16 @@ import { Users, MapPin, Phone, Mail } from "lucide-react";
 import { getStatusColor } from "@/utils/colors";
 import { calculateClientScore, getScoreColor } from "@/utils/scoring";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ServiceHistory } from '@/types/models.types';
 
 interface Client {
-  id: string;  
+  id: string;
   name: string;
   phone?: string;
   email?: string;
   address?: string;
   status: string;
-  service_history?: any[];
+  service_history?: ServiceHistory[];
   notes?: string;
 }
 

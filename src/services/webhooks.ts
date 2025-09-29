@@ -4,11 +4,24 @@
  */
 
 import { API_CONFIG, apiClient, webhookUtils } from '@/config/api.config';
+import type {
+  WebhookClientData,
+  WebhookCallData,
+  WebhookInterventionData,
+  WebhookFeedbackData
+} from '@/types/api.types';
+import { logger } from '@/lib/logger';
 
 export interface VapiCallRequest {
   phoneNumber: string;
   assistantId?: string;
-  context?: Record<string, any>;
+  context?: {
+    clientId?: string;
+    campaignId?: string;
+    metadata?: Record<string, unknown>;
+    priority?: 'low' | 'normal' | 'high';
+    [key: string]: unknown;
+  };
   clientName?: string;
   urgency?: 'low' | 'normal' | 'high';
 }
@@ -30,7 +43,7 @@ export interface SupportFeedbackRequest {
     email?: string;
   };
   urgency?: 'low' | 'normal' | 'high';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // VAPI Voice AI Service
@@ -154,7 +167,7 @@ export const TwilioService = {
 
 // n8n Automation Service
 export const N8nService = {
-  async triggerNewClientWorkflow(clientData: any) {
+  async triggerNewClientWorkflow(clientData: WebhookClientData) {
     return webhookUtils.triggerN8nWebhook('newClient', {
       event: 'client_created',
       client: clientData,
@@ -166,7 +179,7 @@ export const N8nService = {
     });
   },
 
-  async triggerEmergencyCallWorkflow(callData: any) {
+  async triggerEmergencyCallWorkflow(callData: WebhookCallData) {
     return webhookUtils.triggerN8nWebhook('emergencyCall', {
       event: 'emergency_call',
       call: callData,
@@ -179,7 +192,7 @@ export const N8nService = {
     });
   },
 
-  async triggerInterventionCompletedWorkflow(interventionData: any) {
+  async triggerInterventionCompletedWorkflow(interventionData: WebhookInterventionData) {
     return webhookUtils.triggerN8nWebhook('interventionCompleted', {
       event: 'intervention_completed',
       intervention: interventionData,
@@ -192,7 +205,7 @@ export const N8nService = {
     });
   },
 
-  async triggerFeedbackWorkflow(feedbackData: any) {
+  async triggerFeedbackWorkflow(feedbackData: WebhookFeedbackData) {
     return webhookUtils.triggerN8nWebhook('feedback', {
       event: 'customer_feedback',
       feedback: feedbackData,
@@ -229,8 +242,15 @@ export const SupportService = {
 
     // Trigger n8n workflow for feedback processing
     await N8nService.triggerFeedbackWorkflow({
-      ...request,
-      support_id: (data as any)?.id || 'unknown'
+      id: (data as { id?: string })?.id || 'unknown',
+      rating: 0,
+      comment: request.message,
+      metadata: {
+        type: request.type,
+        clientInfo: request.clientInfo,
+        urgency: request.urgency,
+        ...request.metadata
+      }
     });
 
     return data;
@@ -280,6 +300,7 @@ export const MapsService = {
       
       return { lat: null, lng: null, error: data.error_message || 'Adresse non trouvée' };
     } catch (error) {
+      logger.error('Geocoding operation failed:', error);
       return { lat: null, lng: null, error: 'Erreur géocodage' };
     }
   },
@@ -310,6 +331,7 @@ export const MapsService = {
       
       return { distance: null, duration: null, error: 'Route non trouvée' };
     } catch (error) {
+      logger.error('Route calculation failed:', error);
       return { distance: null, duration: null, error: 'Erreur calcul route' };
     }
   },

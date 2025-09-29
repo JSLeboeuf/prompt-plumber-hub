@@ -1,5 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { apiClient } from "@/config/api.config";
+import { logger } from '@/lib/logger';
+import type {
+  CallContext,
+  RealtimePayload,
+  WebhookClientData,
+  WebhookCallData,
+  WebhookInterventionData,
+  WebhookFeedbackData
+} from '@/types/api.types';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Environment configuration
 const config = {
@@ -20,7 +30,7 @@ const config = {
 
 // VAPI Voice AI Integration
 export class VAPIService {
-  static async startCall(phoneNumber: string, context: any) {
+  static async startCall(phoneNumber: string, context: CallContext) {
     try {
       const { data, error } = await supabase.functions.invoke('vapi-call', {
         body: {
@@ -32,7 +42,7 @@ export class VAPIService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('VAPI call failed:', error);
+      logger.error('VAPI call failed:', error);
       throw error;
     }
   }
@@ -64,7 +74,7 @@ export class SMSService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('SMS sending failed:', error);
+      logger.error('SMS sending failed:', error);
       throw error;
     }
   }
@@ -81,7 +91,7 @@ export class SMSService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Bulk SMS sending failed:', error);
+      logger.error('Bulk SMS sending failed:', error);
       throw error;
     }
   }
@@ -89,7 +99,10 @@ export class SMSService {
 
 // n8n Automation Service
 export class AutomationService {
-  static async triggerWorkflow(workflowName: string, data: any) {
+  static async triggerWorkflow(
+    workflowName: string,
+    data: WebhookClientData | WebhookCallData | WebhookInterventionData | WebhookFeedbackData
+  ) {
     try {
       const { data: result, error } = await apiClient.post('/functions/v1/n8n-webhook', {
         webhook: workflowName,
@@ -98,7 +111,7 @@ export class AutomationService {
       if (error) throw new Error(error);
       return result;
     } catch (error) {
-      console.error('n8n workflow trigger failed:', error);
+      logger.error('n8n workflow trigger failed:', error);
       throw error;
     }
   }
@@ -132,7 +145,7 @@ export class MapsService {
       }
       throw new Error('Geocoding failed');
     } catch (error) {
-      console.error('Geocoding error:', error);
+      logger.error('Geocoding error:', error);
       throw error;
     }
   }
@@ -153,7 +166,7 @@ export class MapsService {
       
       return await response.json();
     } catch (error) {
-      console.error('Route optimization error:', error);
+      logger.error('Route optimization error:', error);
       throw error;
     }
   }
@@ -161,14 +174,20 @@ export class MapsService {
 
 // Supabase Real-time Service
 export class RealtimeService {
-  static subscribeToTable(table: string, callback: (payload: any) => void) {
+  static subscribeToTable(
+    table: string,
+    callback: (payload: RealtimePayload) => void
+  ): RealtimeChannel {
     return supabase
       .channel(`public:${table}`)
       .on('postgres_changes', { event: '*', schema: 'public', table }, callback)
       .subscribe();
   }
 
-  static subscribeToUserData(userId: string, callback: (payload: any) => void) {
+  static subscribeToUserData(
+    userId: string,
+    callback: (payload: RealtimePayload) => void
+  ): RealtimeChannel {
     return supabase
       .channel(`user:${userId}`)
       .on('postgres_changes', 
@@ -182,7 +201,7 @@ export class RealtimeService {
       .subscribe();
   }
 
-  static unsubscribe(channel: any) {
+  static unsubscribe(channel: RealtimeChannel) {
     return supabase.removeChannel(channel);
   }
 }

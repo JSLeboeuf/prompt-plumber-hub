@@ -77,7 +77,19 @@ export default function Interventions() {
     return interventions.filter(intervention => intervention.status === status);
   };
 
-  const InterventionCard = ({ intervention }: { intervention: any }) => (
+  const InterventionCard = ({ intervention }: {
+    intervention: {
+      id: string;
+      title: string;
+      description?: string;
+      status: string;
+      priority: string;
+      scheduled_date?: string;
+      client_name?: string;
+      address?: string;
+      technician?: string;
+    };
+  }) => (
     <Card className={`mb-3 cursor-pointer hover:shadow-md transition-shadow duration-200 ${getPriorityColor(intervention.priority)}`}>
       <CardContent className="p-4">
         <div className="space-y-2">

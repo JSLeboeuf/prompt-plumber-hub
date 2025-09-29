@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
+import { logger } from '@/lib/logger';
 
 export interface UserProfile {
   id: string;
@@ -22,8 +24,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: any }>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error?: any }>;
+  signIn: (email: string, password: string) => Promise<{ error?: Error | null }>;
+  signUp: (email: string, password: string, userData?: Partial<UserProfile>) => Promise<{ error?: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (role: string) => boolean;
   canAccess: (resource: string, action: string) => boolean;
@@ -58,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Error loading profile:', error);
+        logger.error('Error loading profile', error as Error);
         throw error;
       }
 
@@ -78,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(profileData);
       
     } catch (error) {
-      console.error('❌ Failed to load profile:', error);
+      logger.error('Failed to load profile', error as Error);
       // Set fallback profile to prevent app crash
       setProfile({
         id: currentUser.id,
@@ -148,7 +150,7 @@ const { error } = await supabase.auth.signInWithPassword({
       });
       
       if (error) {
-        console.error('❌ Sign in error:', error);
+        logger.error('Sign in error', error);
         toast.error('Erreur de connexion', { description: error.message });
         return { error };
       }
@@ -156,16 +158,17 @@ const { error } = await supabase.auth.signInWithPassword({
       
       return { error: null };
       
-    } catch (error: any) {
-      console.error('❌ Sign in exception:', error);
-      toast.error('Erreur', { description: error.message || 'Erreur de connexion' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
+      logger.error('Sign in exception', error as Error);
+      toast.error('Erreur', { description: errorMessage });
       return { error };
     } finally {
       setLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+  const signUp = async (email: string, password: string, userData?: Partial<UserProfile>) => {
     
     setLoading(true);
     
@@ -181,7 +184,7 @@ const { error } = await supabase.auth.signUp({
       });
       
       if (error) {
-        console.error('❌ Sign up error:', error);
+        logger.error('Sign up error', error);
         toast.error("Erreur d'inscription", { description: error.message });
         return { error };
       }
@@ -189,9 +192,10 @@ const { error } = await supabase.auth.signUp({
       
       return { error: null };
       
-    } catch (error: any) {
-      console.error('❌ Sign up exception:', error);
-      toast.error('Erreur', { description: error.message || "Erreur d'inscription" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur d'inscription";
+      logger.error('Sign up exception', error as Error);
+      toast.error('Erreur', { description: errorMessage });
       return { error };
     } finally {
       setLoading(false);
@@ -205,14 +209,15 @@ const { error } = await supabase.auth.signUp({
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('❌ Sign out error:', error);
+        logger.error('Sign out error', error);
         throw error;
       }
       
       
-    } catch (error: any) {
-      console.error('❌ Sign out exception:', error);
-      toast.error('Erreur', { description: error.message || 'Erreur de déconnexion' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur de déconnexion';
+      logger.error('Sign out exception', error as Error);
+      toast.error('Erreur', { description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -222,11 +227,14 @@ const { error } = await supabase.auth.signUp({
     return profile?.role === role;
   };
 
+  // Client-side permission check for UI rendering
+  // IMPORTANT: This is for UI only - actual authorization happens server-side
   const canAccess = (resource: string, action: string): boolean => {
     if (!profile) return false;
 
     const normalizedAction = action === 'write' ? 'create' : action === 'view' ? 'read' : action;
-    
+
+    // These are UI hints only - server validates actual permissions
     const permissions = {
       admin: {
         '*': ['create', 'read', 'update', 'delete', 'manage']
@@ -245,10 +253,10 @@ const { error } = await supabase.auth.signUp({
       }
     } as const;
 
-    const rolePermissions = (permissions as any)[profile.role];
+    const rolePermissions = permissions[profile.role as keyof typeof permissions];
     if (!rolePermissions) return false;
 
-    // Admin has access to everything
+    // Admin has access to everything (UI hint only)
     if (rolePermissions['*']) {
       return true;
     }

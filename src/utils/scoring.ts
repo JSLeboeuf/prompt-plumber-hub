@@ -1,5 +1,7 @@
+import type { ServiceHistory } from '@/types/models.types';
+
 interface Client {
-  service_history?: any[];
+  service_history?: ServiceHistory[];
   email?: string;
   phone?: string;
   notes?: string;

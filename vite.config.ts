@@ -4,6 +4,37 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 
+// Security headers plugin inline (can't import from src at build time)
+const viteSecurityHeaders = {
+  name: 'security-headers',
+  configureServer(server: {
+    middlewares: {
+      use: (middleware: (req: unknown, res: { setHeader: (name: string, value: string) => void }, next: () => void) => void) => void;
+    };
+  }) {
+    server.middlewares.use((_req: unknown, res: { setHeader: (name: string, value: string) => void }, next: () => void) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      next();
+    });
+  },
+  configurePreviewServer(server: {
+    middlewares: {
+      use: (middleware: (req: unknown, res: { setHeader: (name: string, value: string) => void }, next: () => void) => void) => void;
+    };
+  }) {
+    server.middlewares.use((_req: unknown, res: { setHeader: (name: string, value: string) => void }, next: () => void) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      next();
+    });
+  },
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -14,6 +45,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     process.env.ANALYZE ? visualizer({ filename: "dist/stats.html", template: "treemap" }) : null,
+    viteSecurityHeaders,
   ].filter(Boolean),
   resolve: {
     alias: {

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, Eye } from "lucide-react";
 import { getStatusColor } from "@/utils/colors";
 import { calculateClientScore, getScoreColor, getScoreLabel } from "@/utils/scoring";
+import type { ServiceHistory } from '@/types/models.types';
 
 interface Client {
   id: string;
@@ -11,7 +12,7 @@ interface Client {
   email?: string;
   address?: string;
   status: string;
-  service_history?: any[];
+  service_history?: ServiceHistory[];
   tags?: string[];
 }
 

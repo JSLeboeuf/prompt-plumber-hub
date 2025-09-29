@@ -1,10 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { corsHeaders, handleCors } from '../_shared/cors.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
 
 interface SMSRequest {
   to: string; // Numéro de téléphone du destinataire
@@ -16,18 +12,14 @@ interface SMSRequest {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createServiceClient();
     const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     if (req.method !== 'POST') {
       throw new Error('Method not allowed');
@@ -100,7 +92,7 @@ serve(async (req) => {
       throw new Error(`Erreur Twilio: ${twilioData.message || 'Erreur inconnue'}`);
     }
 
-    console.log('SMS envoyé avec succès:', twilioData);
+    console.warn('SMS envoyé avec succès:', twilioData);
 
     // Logger le SMS dans la base de données
     const { data: smsLog, error: logError } = await supabase

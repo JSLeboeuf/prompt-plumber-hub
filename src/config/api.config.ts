@@ -12,15 +12,15 @@ export const config = {
 }
 
 export const createApiClient = () => ({
-  get: (_: string, __?: any) => Promise.resolve({ data: {}, error: null }),
-  post: (_: string, __?: any) => Promise.resolve({ data: {}, error: null }),
-  put: (_: string, __?: any) => Promise.resolve({ data: {}, error: null }),
-  delete: (_: string) => Promise.resolve({ data: {}, error: null })
+  get: (_endpoint: string, _options?: Record<string, unknown>) => Promise.resolve({ data: {}, error: null }),
+  post: (_endpoint: string, _data?: Record<string, unknown>) => Promise.resolve({ data: {}, error: null }),
+  put: (_endpoint: string, _data?: Record<string, unknown>) => Promise.resolve({ data: {}, error: null }),
+  delete: (_endpoint: string) => Promise.resolve({ data: {}, error: null })
 })
 
 export const webhookUtils = {
   trigger: () => Promise.resolve({}),
-  triggerN8nWebhook: (_: string, __: any) => Promise.resolve({})
+  triggerN8nWebhook: (_webhook: string, _data: Record<string, unknown>) => Promise.resolve({})
 }
 
 export const apiClient = createApiClient()

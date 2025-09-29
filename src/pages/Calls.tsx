@@ -27,6 +27,7 @@ import { useEmergencyCalls } from "@/hooks/useProductionData";
 import { useToast } from "@/hooks/useToast";
 import { format } from "date-fns";
 import { CallsLoadingSkeleton } from "@/components/ui/loading-states";
+import { logger } from '@/lib/logger';
 
 export default function Calls() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +44,7 @@ export default function Calls() {
       await updateCall(callId);
       toast.success("Appel pris en charge", "Vous êtes maintenant assigné à cet appel");
     } catch (error) {
+      logger.error('Failed to take call:', error);
       toast.error("Erreur", "Impossible de prendre l'appel en charge");
     } finally {
       setActionLoading(null);
@@ -56,6 +58,7 @@ export default function Calls() {
       await updateCall(callId);
       toast.success("Appel terminé", "L'intervention a été marquée comme terminée");
     } catch (error) {
+      logger.error('Failed to complete call:', error);
       toast.error("Erreur", "Impossible de terminer l'appel");
     } finally {
       setActionLoading(null);

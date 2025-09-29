@@ -1,0 +1,43 @@
+# Context 7 Configuration pour Cursor et Codex CLI
+
+## Project Overview
+This is a React/TypeScript application built with Vite, using Supabase as the backend. It's a business dashboard application for "Drain Fortin Prod" with features for CRM, analytics, calls management, and more.
+
+## Tech Stack
+- **Frontend**: React 18, TypeScript, Vite
+- **UI**: Radix UI components, Tailwind CSS, Shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Realtime)
+- **State Management**: React Query, Context API
+- **Testing**: Vitest, Playwright
+- **Build**: Vite, ESLint
+
+## Key Directories
+- `src/` - Main application code
+- `src/components/` - Reusable UI components
+- `src/pages/` - Route components
+- `src/hooks/` - Custom React hooks
+- `src/services/` - API and data services
+- `supabase/` - Database migrations and edge functions
+- `dist/` - Built application
+
+## Context Rules
+1. Always use TypeScript for new code
+2. Follow the existing component structure and naming conventions
+3. Use React Query for data fetching
+4. Implement proper error handling and loading states
+5. Follow accessibility best practices with Radix UI
+6. Use the existing color scheme and design tokens
+7. Maintain consistency with the existing codebase patterns
+
+## Bridge Configuration for Codex CLI
+This configuration allows Codex CLI to access the full project context including:
+- Project structure and dependencies
+- Code patterns and conventions
+- Database schema (Supabase)
+- API endpoints and services
+- Component library usage
+- Testing strategies
+
+When using Codex CLI, reference this context for consistent development practices.
+
+

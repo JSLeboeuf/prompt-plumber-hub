@@ -1,18 +1,24 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import type {
+  RealtimePayload,
+  RealtimeInsertPayload,
+  RealtimeUpdatePayload,
+  RealtimeDeletePayload
+} from '@/types/api.types';
 
-interface UseRealtimeSubscriptionOptions {
+interface UseRealtimeSubscriptionOptions<T = Record<string, unknown>> {
   table: string;
   event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
   filter?: string;
-  onInsert?: (payload: any) => void;
-  onUpdate?: (payload: any) => void;
-  onDelete?: (payload: any) => void;
+  onInsert?: (payload: RealtimeInsertPayload<T>) => void;
+  onUpdate?: (payload: RealtimeUpdatePayload<T>) => void;
+  onDelete?: (payload: RealtimeDeletePayload<T>) => void;
   enabled?: boolean;
 }
 
-export const useRealtimeSubscription = ({
+export const useRealtimeSubscription = <T = Record<string, unknown>>({
   table,
   event = '*',
   filter,
@@ -20,7 +26,7 @@ export const useRealtimeSubscription = ({
   onUpdate,
   onDelete,
   enabled = true
-}: UseRealtimeSubscriptionOptions) => {
+}: UseRealtimeSubscriptionOptions<T>) => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const subscriptionId = useRef<string>(`${table}_${Date.now()}`);
 
@@ -42,28 +48,23 @@ export const useRealtimeSubscription = ({
     const channel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event,
           schema: 'public',
           table,
           ...(filter ? { filter } : {})
         },
-        (payload: any) => {
-          // Only log in development
-          if (process.env.NODE_ENV === 'development') {
-            
-          }
-
-          switch ((payload as any).eventType) {
+        (payload: RealtimePayload<T>) => {
+          switch (payload.eventType) {
             case 'INSERT':
-              onInsert?.(payload);
+              onInsert?.(payload as RealtimeInsertPayload<T>);
               break;
             case 'UPDATE':
-              onUpdate?.(payload);
+              onUpdate?.(payload as RealtimeUpdatePayload<T>);
               break;
             case 'DELETE':
-              onDelete?.(payload);
+              onDelete?.(payload as RealtimeDeletePayload<T>);
               break;
           }
         }

@@ -1,10 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { corsHeaders, handleCors } from '../_shared/cors.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
 
 interface SupportRequest {
   client_name: string;
@@ -18,15 +14,11 @@ interface SupportRequest {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServiceClient();
 
     if (req.method !== 'POST') {
       throw new Error('Method not allowed');
@@ -60,7 +52,7 @@ serve(async (req) => {
       throw new Error(`Erreur création ticket: ${ticketError.message}`);
     }
 
-    console.log('Ticket de support créé:', ticket);
+    console.warn('Ticket de support créé:', ticket);
 
     // Logger l'action dans audit_logs
     const { error: auditError } = await supabase

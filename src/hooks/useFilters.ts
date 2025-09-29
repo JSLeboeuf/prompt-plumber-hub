@@ -5,7 +5,7 @@ interface FilterConfig<T> {
   defaultFilter?: string;
 }
 
-export function useFilters<T extends Record<string, any>>(
+export function useFilters<T extends Record<string, unknown>>(
   items: T[],
   config: FilterConfig<T>
 ) {

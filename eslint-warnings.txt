@@ -1,0 +1,179 @@
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\e2e\auth.setup.ts
+   22:5   warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+  136:14  warning  '_navigationError' is defined but never used                                   @typescript-eslint/no-unused-vars
+  203:14  warning  '_screenshotError' is defined but never used                                   @typescript-eslint/no-unused-vars
+  217:14  warning  '_saveError' is defined but never used                                         @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\components\analytics\PerformanceMetrics.tsx
+  15:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\components\error\ErrorBoundary.tsx
+   39:35  warning  'error' is defined but never used. Allowed unused args must match /^_/u                                                         @typescript-eslint/no-unused-vars
+  288:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\config\unified.api.config.ts
+  172:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  173:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\features\analytics\__tests__\CallsChart.smoke.spec.tsx
+  8:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\features\crm\CRMDashboard.tsx
+   98:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+  108:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\features\crm\ClientsView.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useAnalytics.ts
+  119:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useAnalyticsExport.ts
+   8:10  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+   9:12  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  25:13  warning  'exportData' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useFilters.ts
+  8:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useInterventions.ts
+  8:24  warning  'id' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  8:36  warning  'updates' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  9:24  warning  'id' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useSupabaseData.ts
+  40:63  warning  'payload' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  66:64  warning  'payload' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\hooks\useWebSocket.ts
+  170:6  warning  React Hook useCallback has a missing dependency: 'handleVapiEvent'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
+  258:6  warning  React Hook useEffect has missing dependencies: 'connect' and 'disconnect'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\lib\errors\AppError.ts
+  11:3  warning  'ErrorContext' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\lib\errors\ErrorHandler.ts
+  331:9   warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+  508:22  warning  'code' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\lib\logger.ts
+  22:11  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+  25:11  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\pages\Calls.tsx
+  45:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  58:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\pages\Conformite.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\api.secure.ts
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\api\ServiceLayer.ts
+   12:27  warning  'APIResponse' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   86:44  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   86:69  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   93:45  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   93:72  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  109:85  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  142:66  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  185:28  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  216:83  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  258:28  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  293:29  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  357:94  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\api\UnifiedAPIClient.ts
+   13:24  warning  'ErrorCategory' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  320:17  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  321:17  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  418:17  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\api\__tests__\unified.integration.test.ts
+    8:25  warning  'ErrorSeverity' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  125:23  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  274:25  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  294:23  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\api\index.ts
+   83:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\calls\index.ts
+   35:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\core\ServiceRegistry.ts
+  169:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\crm\client.ts
+   13:3  warning  'SupabaseQuery' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  160:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  455:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  457:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  458:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  475:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  477:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  494:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  496:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  513:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  515:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  532:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  534:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\gateway\ApiGateway.ts
+  13:10  warning  'csrfProtection' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\gateway\RequestValidator.ts
+  153:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  190:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\gateway\ResponseTransformer.ts
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unused-vars')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\httpClient.ts
+  72:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\legacyApi.ts
+  10:3  warning  'APIResponse' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  11:3  warning  'APIError' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\security\SecurityMiddleware.ts
+  8:10  warning  'csrfProtection' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  9:10  warning  'withSecurityHeaders' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\security\headers.ts
+  6:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\validation\schemas.ts
+  31:7  warning  'SafeUrl' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\services\webhooks.ts
+  301:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+  331:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\src\types\api.types.ts
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\supabase\functions\send-bulk-sms\index.ts
+   55:5  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+  138:5  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\supabase\functions\send-sms\index.ts
+  95:5  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\supabase\functions\support-feedback\index.ts
+  55:5  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+C:\Users\Jean-Samuel\drain fortin prod f\prompt-plumber-hub\supabase\functions\vapi-call\index.ts
+  36:16  warning  '_' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  60:5   warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+✖ 95 problems (0 errors, 95 warnings)
+  0 errors and 19 warnings potentially fixable with the `--fix` option.
+

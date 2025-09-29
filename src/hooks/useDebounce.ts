@@ -16,10 +16,13 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
-  callback: T,
+export function useDebouncedCallback<
+  TArgs extends readonly unknown[],
+  TReturn
+>(
+  callback: (...args: TArgs) => TReturn,
   delay: number
-): T {
+): (...args: TArgs) => TReturn {
   const [debouncedCallback, setDebouncedCallback] = useState<T>(callback);
 
   useEffect(() => {

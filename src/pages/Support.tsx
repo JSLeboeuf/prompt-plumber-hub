@@ -1,17 +1,10 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { 
+import {
   HelpCircle,
   Phone,
-  MessageCircle,
   Mail,
   FileText,
-  Mic,
-  Send,
-  Bot,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -19,58 +12,31 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/useToast";
+import { useSupport } from "@/hooks/useSupport";
+import { QuickActionCards } from "@/components/support/QuickActionCards";
+import { ChatBot } from "@/components/support/ChatBot";
+import { ContactForm } from "@/components/support/ContactForm";
 
-interface SupportTicket {
-  id: string;
-  titre: string;
-  statut: 'ouvert' | 'en_cours' | 'resolu';
-  priorite: 'urgent' | 'normal' | 'faible';
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface FAQItem {
-  id: string;
-  question: string;
-  reponse: string;
-  category: string;
-}
 
 export default function Support() {
-  const [message, setMessage] = useState("");
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
-  const [chatMessages, setChatMessages] = useState([
-    { type: "bot", content: "Bonjour ! Je suis l'assistant Drain Fortin. Comment puis-je vous aider ?" },
-  ]);
-  const [loading, setLoading] = useState(true);
-  const [subject, setSubject] = useState("");
-  const [priority, setPriority] = useState("normal");
-  const [detailedMessage, setDetailedMessage] = useState("");
-  const { success, error } = useToast();
+  const {
+    message,
+    tickets,
+    faqItems,
+    chatMessages,
+    loading,
+    subject,
+    priority,
+    detailedMessage,
+    setMessage,
+    setSubject,
+    setPriority,
+    setDetailedMessage,
+    sendMessage,
+    submitSupportRequest,
+    resetForm
+  } = useSupport();
 
-  useEffect(() => {
-    fetchSupportData();
-  }, []);
-
-  const fetchSupportData = async () => {
-    try {
-      setLoading(true);
-
-      // Tables support non configurées - affichage état vide
-       
-      setTickets([]);
-      setFaqItems([]);
-
-    } catch (err) {
-      console.error('Erreur lors du chargement des données support:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -90,85 +56,7 @@ export default function Support() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!message.trim()) return;
-    
-    setChatMessages(prev => [...prev, 
-      { type: "user", content: message },
-      { type: "bot", content: "Merci pour votre message. Un agent va vous répondre sous peu. Pour des urgences, utilisez le numéro d'appel direct." }
-    ]);
-    setMessage("");
 
-    // Tentative de log du message via Supabase
-    try {
-      await supabase.functions.invoke('support-feedback', {
-        body: {
-          type: 'chat_message',
-          message: message,
-          priority: 'normal'
-        }
-      });
-    } catch (err) {
-      
-    }
-  };
-
-  const submitSupportRequest = async () => {
-    if (!subject.trim() || !detailedMessage.trim()) {
-      error("Champs requis", "Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-
-    try {
-      // Envoi via edge function support-feedback
-      const { error: functionError } = await supabase.functions.invoke('support-feedback', {
-        body: {
-          type: 'support_request',
-          subject: subject,
-          message: detailedMessage,
-          priority: priority
-        }
-      });
-
-      if (functionError) throw functionError;
-
-      success("Demande envoyée", "Votre demande de support a été enregistrée");
-      setSubject("");
-      setDetailedMessage("");
-      setPriority("normal");
-
-    } catch (err) {
-      console.error('Erreur lors de l\'envoi:', err);
-      error("Erreur", "Impossible d'envoyer la demande. Veuillez réessayer.");
-    }
-  };
-
-  const quickActions = [
-    {
-      icon: Phone,
-      title: "Appel d'urgence",
-      description: "+1 438 601 2625",
-      subtitle: "Disponible 24/7",
-      urgent: true,
-      action: () => window.open("tel:+14386012625")
-    },
-    {
-      icon: MessageCircle,
-      title: "Chatbot IA",
-      description: "Assistant intelligent", 
-      subtitle: "Réponse immédiate",
-      urgent: false,
-      action: () => {},
-    },
-    {
-      icon: Mail,
-      title: "Email support",
-      description: "support@drainfortin.com",
-      subtitle: "Réponse sous 2h",
-      urgent: false,
-      action: () => window.open("mailto:support@drainfortin.com")
-    }
-  ];
 
   if (loading) {
     return (
@@ -194,49 +82,14 @@ export default function Support() {
             Centre d'aide et support technique Drain Fortin
           </p>
         </div>
-        <Button className="flex items-center gap-2" onClick={() => {
-          setSubject("");
-          setDetailedMessage("");
-          setPriority("normal");
-        }}>
+        <Button className="flex items-center gap-2" onClick={resetForm}>
           <FileText className="h-4 w-4" />
           Nouveau Ticket
         </Button>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {quickActions.map((action, index) => {
-          const Icon = action.icon;
-          return (
-            <Card 
-              key={index}
-              className={`cursor-pointer hover:shadow-md transition-shadow duration-200 ${
-                action.urgent ? 'border-red-200 bg-red-50' : ''
-              }`}
-              onClick={action.action}
-            >
-              <CardContent className="p-6 text-center">
-                <div className={`inline-flex p-4 rounded-full mb-4 ${
-                  action.urgent ? 'bg-red-100' : 'bg-primary'
-                }`}>
-                  <Icon className={`h-8 w-8 ${
-                    action.urgent ? 'text-red-600' : 'text-primary-foreground'
-                  }`} />
-                </div>
-                <h3 className="title-md mb-2">{action.title}</h3>
-                <p className="body font-medium mb-1">{action.description}</p>
-                <p className="caption text-muted-foreground">{action.subtitle}</p>
-                {action.urgent && (
-                  <Badge className="mt-3 bg-red-100 text-red-800 border-red-200">
-                    Urgence 24/7
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <QuickActionCards />
 
       {/* Main Support Tabs */}
       <Tabs defaultValue="chatbot" className="w-full">
@@ -248,64 +101,12 @@ export default function Support() {
         </TabsList>
 
         <TabsContent value="chatbot" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="title-md flex items-center gap-2">
-                <Bot className="h-5 w-5 text-primary" />
-                Assistant IA Drain Fortin
-              </CardTitle>
-              <p className="caption text-muted-foreground">
-                Support vocal et textuel avec intelligence artificielle
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Chat Messages */}
-                <div className="bg-surface rounded-lg p-4 h-64 overflow-y-auto space-y-3">
-                  {chatMessages.map((msg, index) => (
-                    <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs px-4 py-2 rounded-lg ${
-                        msg.type === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-white border'
-                      }`}>
-                        {msg.type === 'bot' && (
-                          <div className="flex items-center gap-2 mb-1">
-                            <Bot className="h-4 w-4" />
-                            <span className="text-xs font-medium">Assistant IA</span>
-                          </div>
-                        )}
-                        <p className="text-sm">{msg.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Message Input */}
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Tapez votre question..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    className="flex-1"
-                  />
-                  <Button size="sm" variant="outline" disabled>
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" onClick={sendMessage}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="text-center">
-                  <Badge variant="secondary" className="text-xs">
-                    Assistant IA alimenté par données réelles Supabase
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ChatBot
+            chatMessages={chatMessages}
+            message={message}
+            onMessageChange={setMessage}
+            onSendMessage={sendMessage}
+          />
         </TabsContent>
 
         <TabsContent value="faq" className="mt-6">
@@ -412,48 +213,15 @@ export default function Support() {
 
         <TabsContent value="contact" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="title-md">Formulaire de Contact</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="label block mb-2">Sujet *</label>
-                    <Input 
-                      placeholder="Décrivez brièvement votre demande..."
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="label block mb-2">Priorité</label>
-                    <select 
-                      className="w-full p-2 border rounded-md"
-                      value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
-                    >
-                      <option value="faible">Faible</option>
-                      <option value="normal">Normal</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label block mb-2">Message détaillé *</label>
-                    <Textarea 
-                      placeholder="Décrivez votre problème ou question en détail..."
-                      className="min-h-[120px]"
-                      value={detailedMessage}
-                      onChange={(e) => setDetailedMessage(e.target.value)}
-                    />
-                  </div>
-                  <Button className="w-full" onClick={submitSupportRequest}>
-                    <Send className="h-4 w-4 mr-2" />
-                    Envoyer la demande
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ContactForm
+              subject={subject}
+              priority={priority}
+              detailedMessage={detailedMessage}
+              onSubjectChange={setSubject}
+              onPriorityChange={setPriority}
+              onMessageChange={setDetailedMessage}
+              onSubmit={submitSupportRequest}
+            />
 
             <Card>
               <CardHeader>

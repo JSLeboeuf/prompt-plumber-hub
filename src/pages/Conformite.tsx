@@ -22,32 +22,35 @@ import {
 import { useAuditLogs } from "@/hooks/useAuditLogs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // Real compliance data from Supabase
 export default function Conformite() {
   const { canAccess } = useAuth();
   const { logs: auditLogs, loading: logsLoading, exportLogs } = useAuditLogs();
-  const [gdprRequests, setGdprRequests] = useState<any[]>([]);
+  const [gdprRequests, setGdprRequests] = useState<{
+    id: string;
+    type: string;
+    status: string;
+    created_at: string;
+    user_email?: string;
+    description?: string;
+  }[]>([]);
   const [loadingGdpr, setLoadingGdpr] = useState(true);
-  const [_complianceData, setComplianceData] = useState<any>({});
+  const [_complianceData, setComplianceData] = useState<{
+    dataRetention?: number;
+    encryptionStatus?: string;
+    lastAudit?: string;
+    [key: string]: unknown;
+  }>({});
   const [_loadingCompliance, setLoadingCompliance] = useState(true);
-
-  // Check permissions
-  if (!canAccess('audit', 'read')) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
-          <p className="body text-muted-foreground">
-            Vous n'avez pas les permissions pour accéder aux logs de conformité
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const canReadAudit = canAccess('audit', 'read');
 
   // Load real GDPR requests from database
   useEffect(() => {
+    if (!canReadAudit) {
+      return;
+    }
     const fetchGdprRequests = async () => {
       try {
         setLoadingGdpr(true);
@@ -59,7 +62,7 @@ export default function Conformite() {
         if (error) throw error;
         setGdprRequests(data || []);
       } catch (error) {
-        console.error('Error fetching GDPR requests:', error);
+        logger.error('Error fetching GDPR requests', error as Error);
         setGdprRequests([]);
       } finally {
         setLoadingGdpr(false);
@@ -67,10 +70,13 @@ export default function Conformite() {
     };
 
     fetchGdprRequests();
-  }, []);
+  }, [canReadAudit]);
 
   // Load real compliance metrics
   useEffect(() => {
+    if (!canReadAudit) {
+      return;
+    }
     const fetchComplianceData = async () => {
       try {
         setLoadingCompliance(true);
@@ -83,14 +89,14 @@ export default function Conformite() {
         };
         setComplianceData(metrics);
       } catch (error) {
-        console.error('Error fetching compliance data:', error);
+        logger.error('Error fetching compliance data:', error);
       } finally {
         setLoadingCompliance(false);
       }
     };
 
     fetchComplianceData();
-  }, []);
+  }, [canReadAudit]);
 
   const getActionColor = (action: string) => {
     switch (action) {
@@ -110,6 +116,19 @@ export default function Conformite() {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  if (!canReadAudit) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
+          <p className="body text-muted-foreground">
+            Vous n'avez pas les permissions pour accéder aux logs de conformité
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -209,7 +228,14 @@ export default function Conformite() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditLogs.slice(0, 10).map((log: any) => (
+                {auditLogs.slice(0, 10).map((log: {
+                  id: string;
+                  timestamp: string;
+                  action: string;
+                  user_id?: string;
+                  resource?: string;
+                  details?: string;
+                }) => (
                   <TableRow key={log.id} className="hover:bg-surface">
                     <TableCell>
                       <div className="flex items-center gap-2">

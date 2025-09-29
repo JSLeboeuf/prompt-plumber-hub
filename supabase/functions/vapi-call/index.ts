@@ -1,15 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { corsHeaders, handleCors } from '../_shared/cors.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   const start = Date.now();
   try {
@@ -19,9 +15,7 @@ serve(async (req) => {
 
     const { phone_number, assistant_id, context } = await req.json();
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServiceClient();
 
     // If VAPI credentials exist, call external API, otherwise simulate
     const vapiKey = Deno.env.get('VAPI_API_KEY');
@@ -39,7 +33,8 @@ serve(async (req) => {
         });
         const data = await resp.json();
         external = { called: true, status: resp.status, id: data?.id };
-      } catch (_) {
+      } catch (apiError) {
+        console.error('VAPI API error:', apiError);
         external = { called: false, reason: 'external_error' };
       }
     }
@@ -63,7 +58,7 @@ serve(async (req) => {
     }
 
     const latency = Date.now() - start;
-    console.log(JSON.stringify({ service: 'vapi-call', status: 'ok', latency_ms: latency }));
+    console.warn(JSON.stringify({ service: 'vapi-call', status: 'ok', latency_ms: latency }));
 
     return new Response(
       JSON.stringify({ success: true, data: row, metrics: { p50_ms: latency, p95_ms: latency, p99_ms: latency } }),
