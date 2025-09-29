@@ -20,6 +20,7 @@ export interface Client {
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useInterventions } from './useInterventions';
 
 export const useEmergencyCalls = (): {
   calls: EmergencyCall[];
@@ -154,24 +155,34 @@ export const useClients = (): {
 export const useProductionData = () => {
   const { calls, loading: callsLoading } = useEmergencyCalls();
   const { clients, loading: clientsLoading } = useClients();
-  
+  const { interventions, loading: interventionsLoading } = useInterventions();
+
   return {
     clients,
     calls,
-    interventions: [],
-    loading: callsLoading || clientsLoading,
+    interventions,
+    loading: callsLoading || clientsLoading || interventionsLoading,
     error: null
   };
 };
 
-export const useAnalyticsData = () => ({
-  data: null as any,
-  loading: false,
-  error: null
-});
+// These hooks are deprecated - use useEmergencyCalls and useClients instead
+export const useAnalyticsData = () => {
+  const { calls } = useEmergencyCalls();
+  const { clients } = useClients();
 
-export const useClientsData = () => ({
-  data: [] as Client[],
-  loading: false,
-  error: null
-});
+  return {
+    data: { calls, clients },
+    loading: false,
+    error: null
+  };
+};
+
+export const useClientsData = () => {
+  const { clients, loading, error } = useClients();
+  return {
+    data: clients,
+    loading,
+    error
+  };
+};

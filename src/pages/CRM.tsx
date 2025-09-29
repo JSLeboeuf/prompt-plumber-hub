@@ -5,6 +5,7 @@ import { Users, Plus, TrendingUp, Star, Loader2 } from "lucide-react";
 import { usePaginatedCRM } from "@/hooks/usePaginatedCRM";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import { calculateClientScore } from "@/utils/scoring";
 import { useFilters } from "@/hooks/useFilters";
 import { useClientActions } from "@/hooks/useClientActions";
 import { CRMLoadingSkeleton } from "@/components/ui/loading-states";
@@ -84,8 +85,13 @@ export default function CRM() {
     showSuccess('Ordre modifié', 'L\'ordre des clients a été mis à jour');
   };
 
-  // Simple scoring based on available data
-  const averageScore = 75; // Default score when no detailed scoring needed
+  // Calculate real average score from clients data
+  const averageScore = clients.length > 0
+    ? Math.round(clients.reduce((sum, client) => {
+        const score = calculateClientScore(client);
+        return sum + score;
+      }, 0) / clients.length)
+    : 0;
 
   // Stats configuration
   const stats = [
