@@ -621,6 +621,42 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          component_name: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_unit: string | null
+          metric_value: number
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_name?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_unit?: string | null
+          metric_value: number
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_name?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_unit?: string | null
+          metric_value?: number
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       planning: {
         Row: {
           break_type: string | null
@@ -1164,6 +1200,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      auto_anonymize_old_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1182,6 +1226,10 @@ export type Database = {
       }
       get_dashboard_snapshot: {
         Args: { time_period?: string }
+        Returns: Json
+      }
+      get_system_health: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       gtrgm_compress: {
@@ -1220,6 +1268,31 @@ export type Database = {
           p_resource_id?: string
           p_resource_type: string
           p_user_id: string
+        }
+        Returns: string
+      }
+      log_audit_comprehensive: {
+        Args: {
+          p_action: string
+          p_ip_address?: unknown
+          p_metadata?: Json
+          p_new_values?: Json
+          p_old_values?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      log_security_event: {
+        Args: {
+          p_description?: string
+          p_event_type: string
+          p_ip_address?: unknown
+          p_metadata?: Json
+          p_severity?: string
+          p_user_id?: string
         }
         Returns: string
       }
