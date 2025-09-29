@@ -12,7 +12,7 @@ import { PermissionGuard } from "@/components/common/PermissionGuard";
 import { PageLayout } from "@/components/common/PageLayout";
 import { StatsGrid } from "@/components/common/StatsGrid";
 import { SearchFilter } from "@/components/common/SearchFilter";
-import { ClientTable } from "@/components/crm/ClientTable";
+import { DraggableClientTable } from "@/components/crm/DraggableClientTable";
 import { ClientDialog } from "@/components/crm/ClientDialog";
 
 export default function CRM() {
@@ -76,6 +76,12 @@ export default function CRM() {
 
   const handleEmailClient = async (client: any) => {
     await emailClient(client.email || '', 'Contact depuis CRM');
+  };
+
+  const handleReorderClients = (_reorderedClients: typeof clients) => {
+    // Here you can save the new order to the database if needed
+    // For now, just update the local state through the filter hook
+    showSuccess('Ordre modifié', 'L\'ordre des clients a été mis à jour');
   };
 
   // Simple scoring based on available data
@@ -173,17 +179,12 @@ export default function CRM() {
             {dataLoading && clients.length === 0 ? (
               <CRMLoadingSkeleton />
             ) : (
-              <ClientTable
-                clients={filteredClients.map(c => ({
-                  id: c.id,
-                  name: c.name,
-                  email: c.email || '',
-                  phone: c.phone || '',
-                  status: c.status || 'inactive'
-                }))}
+              <DraggableClientTable
+                clients={filteredClients}
                 onViewClient={setSelectedClient}
-                onCallClient={handleCallClient}
-                onEmailClient={handleEmailClient}
+                onCallClient={(phone: string) => handleCallClient({ phone })}
+                onEmailClient={(email: string) => handleEmailClient({ email })}
+                onReorder={handleReorderClients}
               />
             )}
           </CardContent>

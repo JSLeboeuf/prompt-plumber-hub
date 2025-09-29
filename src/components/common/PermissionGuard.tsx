@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from 'react-router-dom';
 
 interface PermissionGuardProps {
   resource: string;
@@ -9,20 +10,18 @@ interface PermissionGuardProps {
   loadingComponent?: ReactNode;
 }
 
-export const PermissionGuard = ({ 
-  resource, 
-  action, 
-  children, 
+export const PermissionGuard = ({
+  resource,
+  action,
+  children,
   fallback,
-  loadingComponent 
+  loadingComponent
 }: PermissionGuardProps) => {
   const { canAccess, loading } = useAuth();
 
   if (loading && loadingComponent) {
     return <>{loadingComponent}</>;
   }
-
-import { Link } from 'react-router-dom';
 
   if (!canAccess(resource, action)) {
     return fallback || (
