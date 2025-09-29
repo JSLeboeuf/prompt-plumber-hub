@@ -22,8 +22,8 @@ interface Client {
 interface ClientTableProps {
   clients: Client[];
   onViewClient: (client: Client) => void;
-  onCallClient?: (phone: string) => void;
-  onEmailClient?: (email: string) => void;
+  onCallClient: ((phone: string) => void) | undefined;
+  onEmailClient: ((email: string) => void) | undefined;
 }
 
 export const ClientTable = ({ 

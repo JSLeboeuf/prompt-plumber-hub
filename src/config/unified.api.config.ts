@@ -249,24 +249,24 @@ function createUnifiedConfig(): UnifiedAPIConfig {
     services: {
       vapi: {
         enabled: isFeatureEnabled('vapi', env) && Boolean(env.VITE_VAPI_PUBLIC_KEY),
-        publicKey: env.VITE_VAPI_PUBLIC_KEY,
-        assistantId: env.VITE_VAPI_ASSISTANT_ID,
-        webhookUrl: env.VITE_VAPI_WEBHOOK_URL,
+        ...(env.VITE_VAPI_PUBLIC_KEY && { publicKey: env.VITE_VAPI_PUBLIC_KEY }),
+        ...(env.VITE_VAPI_ASSISTANT_ID && { assistantId: env.VITE_VAPI_ASSISTANT_ID }),
+        ...(env.VITE_VAPI_WEBHOOK_URL && { webhookUrl: env.VITE_VAPI_WEBHOOK_URL }),
         apiUrl: 'https://api.vapi.ai',
       },
       maps: {
         enabled: isFeatureEnabled('maps', env) && Boolean(env.VITE_GOOGLE_MAPS_API_KEY),
-        apiKey: env.VITE_GOOGLE_MAPS_API_KEY,
+        ...(env.VITE_GOOGLE_MAPS_API_KEY && { apiKey: env.VITE_GOOGLE_MAPS_API_KEY }),
         apiUrl: 'https://maps.googleapis.com/maps/api',
       },
       sms: {
         enabled: isFeatureEnabled('sms', env) && Boolean(env.VITE_TWILIO_ACCOUNT_SID),
-        accountSid: env.VITE_TWILIO_ACCOUNT_SID,
+        ...(env.VITE_TWILIO_ACCOUNT_SID && { accountSid: env.VITE_TWILIO_ACCOUNT_SID }),
         apiUrl: 'https://api.twilio.com',
       },
       automation: {
         enabled: isFeatureEnabled('automation', env) && Boolean(env.VITE_N8N_BASE_URL),
-        baseUrl: env.VITE_N8N_BASE_URL,
+        ...(env.VITE_N8N_BASE_URL && { baseUrl: env.VITE_N8N_BASE_URL }),
         apiUrl: env.VITE_N8N_BASE_URL || 'http://localhost:5678',
       },
       analytics: {

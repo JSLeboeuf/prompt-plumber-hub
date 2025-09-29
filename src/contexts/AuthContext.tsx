@@ -178,7 +178,7 @@ const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData,
+          ...(userData && { data: userData }),
           emailRedirectTo: redirectUrl
         }
       });
@@ -257,11 +257,11 @@ const { error } = await supabase.auth.signUp({
     if (!rolePermissions) return false;
 
     // Admin has access to everything (UI hint only)
-    if (rolePermissions['*']) {
+    if ('*' in rolePermissions && rolePermissions['*']) {
       return true;
     }
 
-    const resourcePermissions = rolePermissions[resource];
+    const resourcePermissions = (rolePermissions as any)[resource];
     return resourcePermissions ? resourcePermissions.includes(normalizedAction) : false;
   };
 
@@ -270,8 +270,8 @@ const { error } = await supabase.auth.signUp({
     profile,
     session,
     loading,
-    signIn,
-    signUp,
+    signIn: signIn as (email: string, password: string) => Promise<{ error?: Error | null }>,
+    signUp: signUp as (email: string, password: string, userData?: Partial<UserProfile>) => Promise<{ error?: Error | null }>,
     signOut,
     hasRole,
     canAccess,

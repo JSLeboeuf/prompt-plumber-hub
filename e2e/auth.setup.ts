@@ -133,7 +133,7 @@ async function globalSetup() {
       // eslint-disable-next-line no-console
       console.log('✅ Successfully navigated to authenticated page');
     } catch (navigationError) {
-      console.error('Navigation error:', navigationError.message);
+      console.warn('Navigation failed:', navigationError instanceof Error ? navigationError.message : String(navigationError));
       // Check if we're still on auth page with success message
       const successAlert = page.locator('.border-green-500, .text-green-600, :has-text("Connexion réussie")');
       const isSuccess = await successAlert.count() > 0;
@@ -201,7 +201,7 @@ async function globalSetup() {
       // eslint-disable-next-line no-console
       console.log('📸 Error screenshot saved to e2e-results/auth-setup-error.png');
     } catch (screenshotError) {
-      console.error('Screenshot error:', screenshotError.message);
+      console.warn('Screenshot failed:', screenshotError instanceof Error ? screenshotError.message : String(screenshotError));
       // eslint-disable-next-line no-console
       console.log('⚠️ Could not save error screenshot');
     }
@@ -216,7 +216,7 @@ async function globalSetup() {
       // eslint-disable-next-line no-console
       console.log('⚠️ Partial state saved despite errors');
     } catch (saveError) {
-      console.error('Save error:', saveError.message);
+      console.warn('Failed to save auth state:', saveError instanceof Error ? saveError.message : String(saveError));
       // eslint-disable-next-line no-console
       console.log('❌ Could not save authentication state');
     }

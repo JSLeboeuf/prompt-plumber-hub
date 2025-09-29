@@ -31,6 +31,8 @@ class ErrorBoundary extends Component<Props, State> {
     super(props);
     this.state = {
       hasError: false,
+      error: null,
+      errorInfo: null,
       retryCount: 0
     };
     this.errorHandler = ErrorHandler.getInstance();
@@ -68,8 +70,8 @@ class ErrorBoundary extends Component<Props, State> {
         componentStack: errorInfo.componentStack
       }
     }, {
-      enableUserFeedback: false, // We'll handle it here
-      enableRecovery: this.props.enableRecovery
+      enableUserFeedback: false,
+      enableRecovery: this.props.enableRecovery || false
     });
 
     this.setState({ error: appError, errorInfo });
@@ -95,8 +97,8 @@ class ErrorBoundary extends Component<Props, State> {
   reset = () => {
     this.setState({
       hasError: false,
-      error: undefined,
-      errorInfo: undefined,
+      error: null,
+      errorInfo: null,
       retryCount: this.state.retryCount + 1
     });
   };
