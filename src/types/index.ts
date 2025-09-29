@@ -15,8 +15,6 @@ export type {
   ApiRequest,
   SupabaseResponse,
   WebSocketMessage,
-
-  // Models
 } from './api.types';
 
 // Models
@@ -61,22 +59,4 @@ declare global {
       NODE_ENV: 'development' | 'production' | 'test';
     }
   }
-}
-
-/**
- * Module augmentations
- */
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
-
-declare module '*.png' {
-  const content: string;
-  export default content;
-}
-
-declare module '*.jpg' {
-  const content: string;
-  export default content;
 }

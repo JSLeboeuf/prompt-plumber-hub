@@ -5,7 +5,7 @@ export function calculateClientScore(_client: any): number {
 
 // Placeholder services for CRM components
 export const statsService = {
-  getStats: async () => ({ 
+  getStats: async (_filters?: any) => ({ 
     totalClients: 0, 
     newThisWeek: 0, 
     averageScore: 0,
@@ -24,33 +24,36 @@ export const statsService = {
 };
 
 export const alertService = {
-  getAlerts: async () => [],
-  getActiveAlerts: async () => [],
+  getAlerts: async (_filters?: any) => [] as any[],
+  getActiveAlerts: async (_filters?: any) => [] as any[],
   acknowledgeAlert: async (_id: string, _data?: any) => ({}),
   resolveAlert: async (_id: string, _data?: any) => ({})
 };
 
 export const interventionService = {
-  getInterventions: async () => [],
-  getTodayInterventions: async () => []
+  getInterventions: async (_filters?: any) => [] as any[],
+  getTodayInterventions: async (_filters?: any) => [] as any[]
 };
 
 export const smsService = {
-  getSMSHistory: async () => [],
-  getSMSMessages: async (_options?: any) => []
+  getSMSHistory: async (_options?: any) => [] as any[],
+  getSMSMessages: async (_options?: any) => [] as any[]
 };
 
 export const realtimeService = {
-  subscribe: (_callback: any) => ({ unsubscribe: () => {} }),
-  subscribeToAlerts: (_callback: any) => ({ unsubscribe: () => {} }),
-  subscribeToSMS: (_callback: any) => ({ unsubscribe: () => {} }),
-  subscribeToInterventions: (_callback: any) => ({ unsubscribe: () => {} }),
+  subscribe: (_callback: (payload: any) => void) => ({ unsubscribe: () => {} }),
+  subscribeToAlerts: (_callback: (payload: any) => void) => ({ unsubscribe: () => {} }),
+  subscribeToSMS: (_callback: (payload: any) => void) => ({ unsubscribe: () => {} }),
+  subscribeToInterventions: (_callback: (payload: any) => void) => ({ unsubscribe: () => {} }),
   unsubscribe: (_subscription?: any) => {}
 };
 
 export const clientService = {
-  getClients: async (_options?: any) => [],
+  getClients: async (_options?: any) => [] as any[],
   createClient: async (_data: any) => ({}),
   updateClient: async (_id: string, _data: any) => ({}),
-  getClientHistory: async (_clientId: string, _options?: any) => ({ interventions: [], sms: [] })
+  getClientHistory: async (_clientId: string, _options?: any) => ({ 
+    interventions: [] as any[], 
+    sms: [] as any[] 
+  })
 };
