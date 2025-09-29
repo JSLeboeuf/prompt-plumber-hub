@@ -30,3 +30,7 @@ e2e/.auth/
 .env.local
 !.env.local.example
 !supabase/.env.example
+
+# Private notes
+PRIVATE_ENV_VALUES.txt
+*_PRIVATE.txt
