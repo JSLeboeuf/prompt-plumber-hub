@@ -4,9 +4,24 @@ import { optimizedServices } from '@/services/optimizedServices';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { logger } from '@/lib/logger';
 
-/**
- * Phase 3: Ultra-fast dashboard hook using optimized RPC functions
- */
+export interface DashboardMetrics {
+  totalCalls: number;
+  activeCalls: number;
+  completedCalls: number;
+  avgDuration: number;
+  urgentCalls: number;
+  activeClients: number;
+  successRate: number;
+  recentCalls: Array<{
+    id: string;
+    status: string;
+    priority: string;
+    customer_name: string;
+    created_at: string;
+  }>;
+  timeRange: string;
+  timestamp: number;
+}
 
 export const useUltraFastDashboard = (timePeriod: '1h' | '24h' | '7d' | '30d' = '24h') => {
   const queryClient = useQueryClient();
@@ -18,7 +33,10 @@ export const useUltraFastDashboard = (timePeriod: '1h' | '24h' | '7d' | '30d' = 
     refetch
   } = useQuery({
     queryKey: ['dashboard-metrics-ultra-fast', timePeriod],
-    queryFn: () => optimizedServices.getDashboardMetricsUltraFast(timePeriod),
+    queryFn: async () => {
+      const data = await optimizedServices.getDashboardMetricsUltraFast(timePeriod);
+      return data as unknown as DashboardMetrics;
+    },
     staleTime: 30000,
     gcTime: 300000,
     refetchInterval: 60000,
@@ -28,8 +46,8 @@ export const useUltraFastDashboard = (timePeriod: '1h' | '24h' | '7d' | '30d' = 
     }
   });
 
-  const handleRealtimeUpdate = useCallback((payload: any) => {
-    logger.info('Real-time dashboard update:', payload.eventType);
+  const handleRealtimeUpdate = useCallback((payload: { eventType: string }) => {
+    logger.info('Real-time dashboard update', { eventType: payload.eventType });
     queryClient.invalidateQueries({ queryKey: ['dashboard-metrics-ultra-fast'] });
   }, [queryClient]);
 

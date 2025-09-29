@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,39 +16,59 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUltraFastDashboard } from "@/hooks/useUltraFastDashboard";
+import { useUltraFastDashboard, type DashboardMetrics } from "@/hooks/useUltraFastDashboard";
 import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { metrics, isLoading } = useUltraFastDashboard('24h');
+  const { metrics: rawMetrics, isLoading } = useUltraFastDashboard('24h');
 
-  const kpiCards = [
+  const defaultMetrics: DashboardMetrics = {
+    totalCalls: 0,
+    activeCalls: 0,
+    completedCalls: 0,
+    avgDuration: 0,
+    urgentCalls: 0,
+    activeClients: 0,
+    successRate: 0,
+    recentCalls: [],
+    timeRange: '24h',
+    timestamp: Date.now()
+  };
+
+  const metrics = rawMetrics ?? defaultMetrics;
+
+  const kpiCards = useMemo(() => [
     {
       title: "Appels aujourd'hui",
-      value: (metrics as any).totalCalls || 0,
+      value: metrics.totalCalls,
       icon: Phone,
       action: () => navigate('/dashboard/calls')
     },
     {
       title: "Interventions actives", 
-      value: (metrics as any).activeCalls || 0,
+      value: metrics.activeCalls,
       icon: Wrench,
       action: () => navigate('/dashboard/interventions')
     },
     {
       title: "Clients actifs",
-      value: (metrics as any).activeClients || 0,
+      value: metrics.activeClients,
       icon: Users,
       action: () => navigate('/dashboard/crm')
     },
     {
       title: "Taux réussite",
-      value: `${(metrics as any).successRate || 0}%`,
+      value: `${Math.round(metrics.successRate)}%`,
       icon: TrendingUp,
       action: () => navigate('/dashboard/analytics')
     }
-  ];
+  ], [metrics, navigate]);
+
+  const urgentCalls = useMemo(
+    () => metrics.recentCalls.filter(call => call.priority === 'P1'),
+    [metrics.recentCalls]
+  );
 
   if (isLoading) {
     return (
@@ -100,9 +121,9 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {((metrics as any).recentCalls || []).filter((call: any) => call.priority === 'P1').length > 0 ? (
+            {urgentCalls.length > 0 ? (
               <div className="space-y-3">
-                {((metrics as any).recentCalls || []).filter((call: any) => call.priority === 'P1').map((call: any) => (
+                {urgentCalls.map((call) => (
                   <div 
                     key={call.id}
                     className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
@@ -143,7 +164,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {((metrics as any).recentCalls || []).slice(0, 4).map((call: any) => (
+              {metrics.recentCalls.slice(0, 4).map((call) => (
                 <div key={call.id} className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2" />
                   <div className="flex-1">
