@@ -17,6 +17,10 @@ export type {
   WebSocketMessage,
 
   // Models
+} from './api.types';
+
+// Models
+export type {
   User,
   UserRole,
   Client,
@@ -24,18 +28,16 @@ export type {
   Intervention,
   DashboardMetrics,
   SupportTicket,
-
-  // Common
-  ValidationResult,
-  AsyncFunction,
-  EventHandler,
-} from './api.types';
+} from './models.types';
 
 // Type utilities
 export {
   isApiError,
   isSupabaseError,
   isApiResponse,
+} from './api.types';
+
+export {
   isUser,
   isClient,
   isCall,
@@ -65,7 +67,7 @@ declare global {
  * Module augmentations
  */
 declare module '*.svg' {
-  const content: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  const content: string;
   export default content;
 }
 
