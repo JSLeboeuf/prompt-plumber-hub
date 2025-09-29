@@ -46,7 +46,7 @@ export function CRMDashboard() {
   const { data: recentSMS = [] } = useQuery({
     queryKey: ['recent-sms'],
     queryFn: () => smsService.getSMSMessages({ 
-      dateFrom: new Date().toISOString().split('T')[0] 
+      dateFrom: new Date().toISOString().split('T')[0]
     }),
     refetchInterval: 30000
   });

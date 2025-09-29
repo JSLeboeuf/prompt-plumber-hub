@@ -3,7 +3,7 @@ import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Call } from "@/shared/types";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface CallsTableProps {
@@ -123,7 +123,7 @@ const CallsTable = memo<CallsTableProps>(function CallsTable({ calls, showAction
           {calls.map((call) => (
             <TableRow key={call.id} className="hover:bg-muted/50" data-testid={`row-call-${call.id}`}>
               <TableCell className="text-sm text-foreground" data-testid={`text-time-${call.id}`}>
-                {formatTime(call.startTime)}
+                {formatTime(new Date(call.startTime))}
               </TableCell>
               <TableCell className="text-sm font-mono text-foreground" data-testid={`text-phone-${call.id}`}>
                 {call.phoneNumber}
@@ -155,11 +155,11 @@ const CallsTable = memo<CallsTableProps>(function CallsTable({ calls, showAction
                 {getServiceFromMetadata(call.metadata)}
               </TableCell>
               <TableCell className="text-sm text-foreground" data-testid={`text-tag-${call.id}`}>
-                {call.metadata?.['tag'] ?? call.metadata?.['intent'] ?? "—"}
+                {call.metadata?.['tag'] || call.metadata?.['intent'] || "—"}
               </TableCell>
               {showActions && (
                 <TableCell>
-                  <Link href={`/calls/${call.id}`}>
+                  <Link to={`/calls/${call.id}`}>
                     <Button
                       variant="ghost"
                       size="sm"

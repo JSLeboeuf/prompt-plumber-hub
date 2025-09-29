@@ -21,7 +21,7 @@ export default function ConversionFunnel({ data, title = "Entonnoir de conversio
       <CardContent>
         <div className="h-64" data-testid="chart-funnel">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="verseLayout">
+            <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="stage" type="category" width={100} />

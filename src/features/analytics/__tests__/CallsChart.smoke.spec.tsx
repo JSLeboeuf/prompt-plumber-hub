@@ -28,7 +28,7 @@ describe('CallsChart - Smoke Test', () => {
   it('should render without crashing', () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
-        <CallsChart />
+        <CallsChart data={[]} />
       </QueryClientProvider>
     );
 
@@ -38,7 +38,7 @@ describe('CallsChart - Smoke Test', () => {
   it('should have proper structure', () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
-        <CallsChart />
+        <CallsChart data={[]} />
       </QueryClientProvider>
     );
 

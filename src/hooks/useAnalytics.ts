@@ -23,7 +23,7 @@ export function useDashboardMetrics() {
     queryKey: ["/api/analytics/dashboard"],
     refetchInterval: 180000, // Optimisé: refresh toutes les 3 minutes
     staleTime: 120000, // Données fraîches pendant 2 minutes
-    cacheTime: 600000, // Garde en cache 10 minutes
+    gcTime: 600000, // Garde en cache 10 minutes (remplace cacheTime)
   });
 }
 
