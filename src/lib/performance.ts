@@ -20,12 +20,6 @@ interface AppPerformanceTiming {
   duration?: number;
   metadata?: Record<string, unknown>;
 }
-  name: string;
-  startTime: number;
-  endTime?: number;
-  duration?: number;
-  metadata?: Record<string, unknown>;
-}
 
 class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
@@ -82,7 +76,7 @@ class PerformanceMonitor {
 
         // Largest Contentful Paint
         const lcpObserver = new PerformanceObserver((list) => {
-const entries = list.getEntries();
+          const entries = list.getEntries();
           if (entries.length === 0) return;
           const lastEntry = entries[entries.length - 1] as PerformanceEntry;
           this.recordMetric('lcp', (lastEntry as any).startTime, 'ms', {
@@ -135,18 +129,12 @@ const entries = list.getEntries();
   /**
    * Start a performance timing
    */
-startTiming(name: string, metadata?: Record<string, unknown>): void {
+  startTiming(name: string, metadata?: Record<string, unknown>): void {
     this.timings.set(name, {
       name,
       startTime: performance.now(),
       metadata,
     } as AppPerformanceTiming);
-  }
-    this.timings.set(name, {
-      name,
-      startTime: performance.now(),
-      metadata,
-    });
   }
 
   /**
@@ -182,8 +170,11 @@ startTiming(name: string, metadata?: Record<string, unknown>): void {
       value,
       unit,
       timestamp: Date.now(),
-      metadata,
     };
+    
+    if (metadata !== undefined) {
+      metric.metadata = metadata;
+    }
 
     this.metrics.push(metric);
 
@@ -236,75 +227,49 @@ startTiming(name: string, metadata?: Record<string, unknown>): void {
   }
 
   /**
-   * Get all metrics
+   * Get performance metrics
    */
   getMetrics(): PerformanceMetric[] {
     return [...this.metrics];
   }
 
   /**
-   * Get metrics summary
+   * Clear stored metrics
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getMetricsSummary(): Record<string, any> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const summary: Record<string, any> = {
-      totalMetrics: this.metrics.length,
-      metrics: {},
-    };
-
-    // Group metrics by name and calculate statistics
-    const grouped = this.metrics.reduce((acc, metric) => {
-      if (!acc[metric.name]) {
-        acc[metric.name] = [];
-      }
-      acc[metric.name].push(metric.value);
-      return acc;
-    }, {} as Record<string, number[]>);
-
-    for (const [name, values] of Object.entries(grouped)) {
-      const sorted = values.sort((a, b) => a - b);
-      summary.metrics[name] = {
-        count: values.length,
-        min: Math.min(...values),
-        max: Math.max(...values),
-        avg: values.reduce((a, b) => a + b, 0) / values.length,
-        median: sorted[Math.floor(sorted.length / 2)],
-        p95: sorted[Math.floor(sorted.length * 0.95)],
-        p99: sorted[Math.floor(sorted.length * 0.99)],
-      };
-    }
-
-    // Add memory usage
-    summary.memory = this.getMemoryUsage();
-
-    return summary;
+  clearMetrics(): void {
+    this.metrics = [];
   }
 
   /**
-   * Start periodic reporting
+   * Start automatic reporting
    */
   private startReporting(): void {
     setInterval(() => {
-      const summary = this.getMetricsSummary();
-      if (summary.totalMetrics > 0) {
-        logger.info('Performance metrics summary', summary);
-      }
+      this.generateReport();
     }, this.reportInterval);
   }
 
   /**
-   * Clear all metrics
+   * Generate performance report
    */
-  clearMetrics(): void {
-    this.metrics = [];
-    this.timings.clear();
+  private generateReport(): void {
+    const memory = this.getMemoryUsage();
+    const recentMetrics = this.metrics.slice(-10);
+
+    const report = {
+      timestamp: Date.now(),
+      memory,
+      recentMetrics,
+      totalMetrics: this.metrics.length,
+    };
+
+    logger.info('Performance report', report);
   }
 
   /**
-   * Destroy observers
+   * Cleanup observers
    */
-  destroy(): void {
+  cleanup(): void {
     for (const observer of this.observers.values()) {
       observer.disconnect();
     }
@@ -312,79 +277,14 @@ startTiming(name: string, metadata?: Record<string, unknown>): void {
   }
 }
 
-// Create singleton instance
-export const performanceMonitor = new PerformanceMonitor();
+// Create global instance
+const performanceMonitor = new PerformanceMonitor();
 
-/**
- * React hook for performance timing
- */
-export function usePerformanceTiming(name: string) {
-  const start = () => performanceMonitor.startTiming(name);
-  const end = () => performanceMonitor.endTiming(name);
-
-  return { start, end };
+// Cleanup on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    performanceMonitor.cleanup();
+  });
 }
 
-/**
- * Measure component render time
- */
-export function measureRenderTime(componentName: string) {
-  return function decorator<T extends { new(...args: unknown[]): object }>(constructor: T) {
-    return class extends constructor {
-      componentDidMount() {
-        performanceMonitor.recordMetric(
-          `render_${componentName}`,
-          performance.now(),
-          'ms'
-        );
-        if (super.componentDidMount) {
-          super.componentDidMount();
-        }
-      }
-    };
-  };
-}
-
-/**
- * Performance mark utility
- */
-export function mark(name: string): void {
-  if ('mark' in performance) {
-    performance.mark(name);
-  }
-}
-
-/**
- * Performance measure utility
- */
-export function measure(name: string, startMark: string, endMark: string): void {
-  if ('measure' in performance) {
-    try {
-      performance.measure(name, startMark, endMark);
-      const measures = performance.getEntriesByName(name, 'measure');
-      if (measures.length > 0) {
-        const measure = measures[measures.length - 1];
-        performanceMonitor.recordMetric(`measure_${name}`, measure.duration, 'ms');
-      }
-    } catch (error) {
-      logger.error('Performance measure failed', { error, name, startMark, endMark });
-    }
-  }
-}
-
-/**
- * Web Vitals tracking
- */
-export const webVitals = {
-  getLCP: () => performanceMonitor.getMetrics().find(m => m.name === 'lcp')?.value,
-  getFID: () => performanceMonitor.getMetrics().find(m => m.name === 'fid')?.value,
-  getCLS: () => performanceMonitor.getMetrics().find(m => m.name === 'cls')?.value,
-  getTTFB: () => {
-    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    return nav ? nav.responseStart - nav.fetchStart : null;
-  },
-  getFCP: () => {
-    const fcp = performance.getEntriesByName('first-contentful-paint')[0];
-    return fcp ? fcp.startTime : null;
-  },
-};
+export default performanceMonitor;

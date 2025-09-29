@@ -95,7 +95,7 @@ export function useCreateLead() {
 mutationFn: async (lead: Partial<Lead>) => {
       const { data, error } = await supabase
         .from('leads')
-        .insert(lead)
+        .insert([lead])
         .select()
         .single();
       if (error) throw error;

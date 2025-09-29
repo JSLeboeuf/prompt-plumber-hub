@@ -45,26 +45,26 @@ export const useRealtimeSubscription = <T = Record<string, unknown>>({
 
     const channelName = `${table}_changes_${subscriptionId.current}`;
     
-    const channel = supabase
+const channel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         {
           event,
           schema: 'public',
           table,
           ...(filter ? { filter } : {})
         },
-        (payload: RealtimePayload<T>) => {
+        (payload: any) => {
           switch (payload.eventType) {
             case 'INSERT':
-              onInsert?.(payload as RealtimeInsertPayload<T>);
+              onInsert?.(payload);
               break;
             case 'UPDATE':
-              onUpdate?.(payload as RealtimeUpdatePayload<T>);
+              onUpdate?.(payload);
               break;
             case 'DELETE':
-              onDelete?.(payload as RealtimeDeletePayload<T>);
+              onDelete?.(payload);
               break;
           }
         }

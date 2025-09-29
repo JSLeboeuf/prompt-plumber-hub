@@ -6,10 +6,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import type {
-  VAPIWebSocketMessage,
-  AlertWebSocketMessage
-} from '@/types/api.types';
 
 export interface WebSocketMessage {
   type: string;
@@ -44,33 +40,55 @@ export function useWebSocket({
   onDisconnect,
   onError
 }: UseWebSocketOptions = {}) {
-  const handleVapiEvent = useCallback((data: any) => {
-    // Update UI based on event type
-    switch (data?.type) {
-      case 'assistant-request':
-        break;
-      case 'assistant-response':
-        break;
-      case 'tool-call':
-        break;
-      default:
-        break;
-    }
-    onMessage?.({ type: 'vapi-event', data, timestamp: new Date().toISOString() });
-  }, [onMessage]);
-  url,
-  reconnectInterval = 3000,
-  maxReconnectAttempts = 5,
-  onMessage,
-  onConnect,
-  onDisconnect,
-  onError
-}: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [reconnectCount, setReconnectCount] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const pingIntervalRef = useRef<NodeJS.Timeout>();
+  
+  // Handle VAPI events
+  const handleVapiEvent = useCallback((data: any) => {
+    // Update UI based on event type
+    switch (data?.type) {
+      case 'assistant-request':
+        // Assistant is processing
+        break;
+      case 'assistant-response':
+        // Assistant responded
+        break;
+      case 'tool-call':
+        // Tool was executed
+        break;
+      default:
+        // Generic VAPI event
+        break;
+    }
+    
+    // Pass to parent handler
+    onMessage?.({
+      type: 'vapi-event',
+      data,
+      timestamp: new Date().toISOString()
+    });
+  }, [onMessage]);
+
+  // Handle alerts
+  const handleAlert = useCallback((alert: any) => {
+    const severity = alert?.severity || 'info';
+    const message = alert?.message || 'System alert';
+    
+    switch (severity) {
+      case 'high':
+      case 'critical':
+        toast.error(message, { duration: 10000 });
+        break;
+      case 'medium':
+        toast.warning(message, { duration: 7000 });
+        break;
+      default:
+        toast.info(message);
+    }
+  }, []);
   
   // Get WebSocket URL
   const getWebSocketUrl = useCallback(() => {
@@ -122,8 +140,8 @@ export function useWebSocket({
               // Ping response, connection is alive
               break;
               
-case 'vapi-event':
-              if (message.data) handleVapiEvent(message.data as any);
+            case 'vapi-event':
+              if (message.data) handleVapiEvent(message.data);
               break;
               
             case 'call-started':
@@ -139,7 +157,7 @@ case 'vapi-event':
               break;
               
             case 'handoff-triggered':
-toast.warning('Call requires human intervention!', {
+              toast.warning('Call requires human intervention!', {
                 duration: 10000
               });
               break;
@@ -157,7 +175,7 @@ toast.warning('Call requires human intervention!', {
       };
 
       ws.onerror = (error) => {
-logger.error('WebSocket error:', error as unknown as Error);
+        logger.error('WebSocket error:', error as unknown as Error);
         onError?.(error);
       };
 
@@ -175,7 +193,6 @@ logger.error('WebSocket error:', error as unknown as Error);
           const nextReconnectCount = reconnectCount + 1;
           setReconnectCount(nextReconnectCount);
           
-          
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
           }, reconnectInterval);
@@ -185,10 +202,10 @@ logger.error('WebSocket error:', error as unknown as Error);
       };
       
     } catch (error) {
-logger.error('Failed to establish WebSocket connection:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Failed to establish WebSocket connection:', error instanceof Error ? error : new Error(String(error)));
       onError?.((error as unknown) as Event);
     }
-  }, [getWebSocketUrl, onConnect, onDisconnect, onError, onMessage, reconnectCount, reconnectInterval, maxReconnectAttempts]);
+  }, [getWebSocketUrl, onConnect, onDisconnect, onError, onMessage, reconnectCount, reconnectInterval, maxReconnectAttempts, handleVapiEvent, handleAlert]);
 
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
@@ -224,65 +241,6 @@ logger.error('Failed to establish WebSocket connection:', error instanceof Error
     return false;
   }, []);
 
-// Handle alerts
-  const handleAlert = (alert: any) => {
-    const severity = alert?.severity || 'info';
-    const message = alert?.message || 'System alert';
-    switch (severity) {
-      case 'high':
-      case 'critical':
-        toast.error(message, { duration: 10000 });
-        break;
-      case 'medium':
-        toast.warning(message, { duration: 7000 });
-        break;
-      default:
-        toast.info(message);
-    }
-  };
-    
-    // Update UI based on event type
-    switch (data.type) {
-      case 'assistant-request':
-        // Assistant is processing
-        break;
-      case 'assistant-response':
-        // Assistant responded
-        break;
-      case 'tool-call':
-        // Tool was executed
-        break;
-      default:
-        // Generic VAPI event
-        break;
-    }
-    
-    // Pass to parent handler
-    onMessage?.({
-      type: 'vapi-event',
-      data,
-      timestamp: new Date().toISOString()
-    });
-  }, [onMessage]);
-
-  // Handle alerts
-  const handleAlert = (alert: AlertWebSocketMessage) => {
-    const severity = alert.severity || 'info';
-    const message = alert.message || 'System alert';
-    
-    switch (severity) {
-      case 'high':
-      case 'critical':
-        toast.error(message, { duration: 10000 });
-        break;
-      case 'medium':
-        toast.warning(message, { duration: 7000 });
-        break;
-      default:
-        toast.info(message);
-    }
-  };
-
   // Setup and cleanup
   useEffect(() => {
     connect();
@@ -290,7 +248,7 @@ logger.error('Failed to establish WebSocket connection:', error instanceof Error
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]); // Include dependencies
+  }, [connect, disconnect]);
 
   // Public API
   return {
