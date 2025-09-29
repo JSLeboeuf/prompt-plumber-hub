@@ -335,11 +335,11 @@ export default function Calls() {
                           <User className="h-4 w-4" />
                           {call.customer_name || 'Client Inconnu'}
                         </div>
-                        {call.metadata?.address && (
-                          <div className="caption text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {call.metadata.address}
-                          </div>
+                         {Boolean((call.metadata as Record<string, unknown>)?.address) && (
+                           <div className="caption text-muted-foreground flex items-center gap-1">
+                             <MapPin className="h-3 w-3" />
+                             {String((call.metadata as Record<string, unknown>).address)}
+                           </div>
                         )}
                       </div>
                     </TableCell>
@@ -363,8 +363,8 @@ export default function Calls() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-xs truncate" title={call.metadata?.description}>
-                        {call.metadata?.description || 'Intervention standard'}
+                      <div className="max-w-xs truncate" title={String((call.metadata as Record<string, unknown>)?.description || '')}>
+                        {String((call.metadata as Record<string, unknown>)?.description || 'Intervention standard')}
                       </div>
                     </TableCell>
                     <TableCell>

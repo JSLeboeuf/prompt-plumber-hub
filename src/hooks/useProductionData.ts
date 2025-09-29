@@ -89,13 +89,13 @@ export const useEmergencyCalls = (): {
     try {
       const { error: insertError } = await supabase
         .from('vapi_calls')
-        .insert({
+        .insert([{
           call_id: (payload.call_id as string) || `call_${Date.now()}`,
           phone_number: (payload.phone_number as string) || null,
           status: 'pending',
           priority: (payload.priority as string) || 'normal',
-          metadata: (payload.metadata as Record<string, unknown>) || {} as never
-        });
+          metadata: (payload.metadata || {}) as never
+        }]);
 
       if (insertError) throw insertError;
       await fetchCalls();

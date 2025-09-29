@@ -50,16 +50,16 @@ export const useInterventions = () => {
     try {
       const { error: insertError } = await supabase
         .from('interventions')
-        .insert({
-          title: (interventionData.title as string) || 'Nouvelle intervention',
-          client_name: (interventionData.client_name as string) || 'Client à assigner',
-          address: (interventionData.address as string) || 'Adresse à définir',
-          service_type: (interventionData.service_type as string) || 'general',
-          priority: (interventionData.priority as string) || 'normal',
-          status: (interventionData.status as string) || 'planned',
-          scheduled_date: (interventionData.scheduled_date as string) || new Date().toISOString().split('T')[0],
-          description: (interventionData.description as string) || 'Nouvelle intervention créée'
-        });
+        .insert([{
+           title: (interventionData.title as string) || 'Nouvelle intervention',
+           client_name: (interventionData.client_name as string) || 'Client à assigner',
+           address: (interventionData.address as string) || 'Adresse à définir',
+           service_type: (interventionData.service_type as string) || 'general',
+           priority: (interventionData.priority as string) || 'normal',
+           status: (interventionData.status as string) || 'planned',
+           scheduled_date: (interventionData.scheduled_date as string) || new Date().toISOString().split('T')[0],
+           description: (interventionData.description as string) || null
+         } as never]);
 
       if (insertError) throw insertError;
       await fetchInterventions();
