@@ -7,7 +7,7 @@ export interface EmergencyCall {
   call_id?: string;
   customer_name?: string | null;
   phone_number?: string | null;
-  metadata?: any;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface Client {
@@ -35,8 +35,8 @@ export const useEmergencyCalls = (): {
   loading: boolean;
   error: string | null;
   fetchCalls: () => Promise<void>;
-  createCall: (payload?: any) => Promise<void>;
-  updateCall: (id: string, updates?: any) => Promise<void>;
+  createCall: (payload?: Record<string, unknown>) => Promise<void>;
+  updateCall: (id: string, updates?: Record<string, unknown>) => Promise<void>;
 } => {
   const [calls, setCalls] = useState<EmergencyCall[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,10 @@ export const useEmergencyCalls = (): {
 
       if (fetchError) throw fetchError;
 
-      setCalls(data || []);
+      setCalls((data || []).map(call => ({ 
+        ...call, 
+        metadata: call.metadata as Record<string, unknown> | null 
+      })));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
       setError(errorMessage);
@@ -74,7 +77,7 @@ export const useEmergencyCalls = (): {
     }
   }, []);
 
-  const createCall = useCallback(async (payload: any = {}) => {
+  const createCall = useCallback(async (payload: Record<string, unknown> = {}) => {
     if (!isVapiFeatureEnabled) {
       if (vapiDisabledMessage) {
         setError(vapiDisabledMessage);
@@ -87,11 +90,11 @@ export const useEmergencyCalls = (): {
       const { error: insertError } = await supabase
         .from('vapi_calls')
         .insert({
-          call_id: payload.call_id || `call_${Date.now()}`,
-          phone_number: payload.phone_number || null,
+          call_id: (payload.call_id as string) || `call_${Date.now()}`,
+          phone_number: (payload.phone_number as string) || null,
           status: 'pending',
-          priority: payload.priority || 'normal',
-          metadata: payload.metadata || {}
+          priority: (payload.priority as string) || 'normal',
+          metadata: (payload.metadata as Record<string, unknown>) || {} as never
         });
 
       if (insertError) throw insertError;
@@ -103,7 +106,7 @@ export const useEmergencyCalls = (): {
     }
   }, [fetchCalls]);
 
-  const updateCall = useCallback(async (id: string, updates: any = {}) => {
+  const updateCall = useCallback(async (id: string, updates: Record<string, unknown> = {}) => {
     if (!isVapiFeatureEnabled) {
       if (vapiDisabledMessage) {
         setError(vapiDisabledMessage);
@@ -116,7 +119,7 @@ export const useEmergencyCalls = (): {
       const { error: updateError } = await supabase
         .from('vapi_calls')
         .update({
-          status: updates.status || 'active',
+          status: (updates.status as string) || 'active',
           ...updates
         })
         .eq('id', id);

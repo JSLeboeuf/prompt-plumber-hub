@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { prodLogger } from '@/lib/productionLogger';
 
 // Real CRM client service
 export function calculateClientScore(client: any): number {
@@ -68,7 +69,7 @@ export const statsService = {
         p2Alerts: alertsData?.filter(a => a.priority === 'P2').length || 0
       };
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      prodLogger.error('Error fetching stats', { error });
       return {
         totalClients: 0, 
         newThisWeek: 0, 
@@ -97,7 +98,7 @@ export const alertService = {
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching alerts:', error);
+      prodLogger.error('Error fetching alerts', { error });
       return [];
     }
     return data || [];
@@ -110,7 +111,7 @@ export const alertService = {
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching active alerts:', error);
+      prodLogger.error('Error fetching active alerts', { error });
       return [];
     }
     return data || [];
@@ -123,7 +124,7 @@ export const alertService = {
       .select();
     
     if (error) {
-      console.error('Error acknowledging alert:', error);
+      prodLogger.error('Error acknowledging alert', { error });
       return {};
     }
     return data?.[0] || {};
@@ -136,7 +137,7 @@ export const alertService = {
       .select();
     
     if (error) {
-      console.error('Error resolving alert:', error);
+      prodLogger.error('Error resolving alert', { error });
       return {};
     }
     return data?.[0] || {};
@@ -151,7 +152,7 @@ export const interventionService = {
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching interventions:', error);
+      prodLogger.error('Error fetching interventions', { error });
       return [];
     }
     return data || [];
@@ -165,7 +166,7 @@ export const interventionService = {
       .order('scheduled_time', { ascending: true });
     
     if (error) {
-      console.error('Error fetching today interventions:', error);
+      prodLogger.error('Error fetching today interventions', { error });
       return [];
     }
     return data || [];
@@ -180,7 +181,7 @@ export const smsService = {
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching SMS history:', error);
+      prodLogger.error('Error fetching SMS history', { error });
       return [];
     }
     return data || [];
@@ -193,7 +194,7 @@ export const smsService = {
       .limit(50);
     
     if (error) {
-      console.error('Error fetching SMS messages:', error);
+      prodLogger.error('Error fetching SMS messages', { error });
       return [];
     }
     return data || [];
@@ -244,7 +245,7 @@ export const clientService = {
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching clients:', error);
+      prodLogger.error('Error fetching clients', { error });
       return [];
     }
     return data || [];
@@ -257,7 +258,7 @@ export const clientService = {
       .single();
     
     if (error) {
-      console.error('Error creating client:', error);
+      prodLogger.error('Error creating client', { error });
       return {};
     }
     return data || {};
@@ -271,7 +272,7 @@ export const clientService = {
       .single();
     
     if (error) {
-      console.error('Error updating client:', error);
+      prodLogger.error('Error updating client', { error });
       return {};
     }
     return data || {};
@@ -293,10 +294,10 @@ export const clientService = {
         .order('created_at', { ascending: false });
 
       if (interventionsError) {
-        console.error('Error fetching client interventions:', interventionsError);
+        prodLogger.error('Error fetching client interventions', { error: interventionsError });
       }
       if (smsError) {
-        console.error('Error fetching client SMS:', smsError);
+        prodLogger.error('Error fetching client SMS', { error: smsError });
       }
 
       return {
@@ -304,7 +305,7 @@ export const clientService = {
         sms: sms || []
       };
     } catch (error) {
-      console.error('Error fetching client history:', error);
+      prodLogger.error('Error fetching client history', { error });
       return {
         interventions: [],
         sms: []

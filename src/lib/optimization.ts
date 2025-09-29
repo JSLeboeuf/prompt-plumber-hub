@@ -3,6 +3,8 @@
  * Remplacements des patterns problématiques identifiés dans le cleanup
  */
 
+import { prodLogger } from '@/lib/productionLogger';
+
 // Remplacement pour les types any problématiques
 export type SafeCallback<T = unknown> = (data: T) => void;
 export type SafeAsyncCallback<T = unknown> = (data: T) => Promise<void>;
@@ -42,10 +44,8 @@ export function safeMetric(value: unknown, defaultValue: number = 0): number {
 // Pattern pour les erreurs sans variables inutilisées
 export function handleSafeError(error: unknown, context: string): string {
   const message = error instanceof Error ? error.message : 'Erreur inconnue';
-  // Ne pas utiliser console.log en production
-  if (process.env.NODE_ENV === 'development') {
-    console.warn(`[${context}]`, message);
-  }
+  // Production-safe logging
+  prodLogger.warn(`[${context}] ${message}`, { context, error });
   return message;
 }
 

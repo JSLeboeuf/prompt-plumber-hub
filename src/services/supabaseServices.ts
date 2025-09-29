@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { prodLogger } from '@/lib/productionLogger';
 
 // Real Supabase services implementation
 export const supabaseServices = {
@@ -12,7 +13,7 @@ export const supabaseServices = {
       .limit(limit);
     
     if (error) {
-      console.error('Error fetching calls:', error);
+      prodLogger.error('Error fetching calls', { error });
       return [];
     }
     return data || [];
@@ -26,7 +27,7 @@ export const supabaseServices = {
       .limit(50);
     
     if (error) {
-      console.error('Error fetching leads:', error);
+      prodLogger.error('Error fetching leads', { error });
       return [];
     }
     return data || [];
@@ -40,7 +41,7 @@ export const supabaseServices = {
       .limit(limit);
     
     if (error) {
-      console.error('Error fetching SMS logs:', error);
+      prodLogger.error('Error fetching SMS logs', { error });
       return [];
     }
     return data || [];
@@ -77,7 +78,7 @@ export const supabaseServices = {
       });
       
       if (error) {
-        console.error('Error fetching dashboard metrics:', error);
+        prodLogger.error('Error fetching dashboard metrics', { error });
         return {
           totalCalls: 0,
           activeCalls: 0,
@@ -93,7 +94,7 @@ export const supabaseServices = {
         successRate: 0
       };
     } catch (err) {
-      console.error('Dashboard metrics error:', err);
+      prodLogger.error('Dashboard metrics error', { error: err });
       return {
         totalCalls: 0,
         activeCalls: 0,

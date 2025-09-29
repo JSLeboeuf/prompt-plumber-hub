@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { prodLogger } from '@/lib/productionLogger';
 
 // Configuration pour l'optimisation du bundle Vite
 export const bundleOptimizations = {
@@ -63,7 +64,7 @@ export class BundleMetrics {
     
     // Alerter si charge lente
     if (loadTime > 2000) {
-      console.warn(`⚠️ Chunk '${chunkName}' loaded slowly: ${loadTime}ms`);
+      prodLogger.warn(`Chunk '${chunkName}' loaded slowly`, { loadTime, chunkName });
     }
   }
   
@@ -72,7 +73,7 @@ export class BundleMetrics {
     
     // Alerter si render lent
     if (renderTime > 100) {
-      console.warn(`⚠️ Component '${componentName}' rendered slowly: ${renderTime}ms`);
+      prodLogger.warn(`Component '${componentName}' rendered slowly`, { renderTime, componentName });
     }
   }
   

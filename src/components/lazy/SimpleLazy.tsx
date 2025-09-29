@@ -5,6 +5,17 @@
 import React, { Suspense, lazy } from 'react';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
+// Types pour les props des composants
+interface PageProps {
+  [key: string]: unknown;
+}
+
+interface ChartProps {
+  data?: unknown[];
+  title?: string;
+  [key: string]: unknown;
+}
+
 // Fallbacks optimisés
 const ChartLoader = () => (
   <div className="h-64 bg-muted rounded-lg flex items-center justify-center animate-pulse">
@@ -53,39 +64,42 @@ export const LazyRevenueChart = lazy(() => import('@/features/analytics/RevenueC
 export const LazyConversionFunnel = lazy(() => import('@/features/analytics/ConversionFunnel'));
 
 // Composants wrappés avec fallbacks
-export const Analytics = (props: any) => (
+export const Analytics = (props: PageProps) => (
   <LazyWrapper fallback={<PageLoader />}>
     <LazyAnalytics {...props} />
   </LazyWrapper>
 );
 
-export const Dashboard = (props: any) => (
+export const Dashboard = (props: PageProps) => (
   <LazyWrapper fallback={<PageLoader />}>
     <LazyDashboard {...props} />
   </LazyWrapper>
 );
 
-export const CRM = (props: any) => (
+export const CRM = (props: PageProps) => (
   <LazyWrapper fallback={<PageLoader />}>
     <LazyCRM {...props} />
   </LazyWrapper>
 );
 
-export const CallsChart = (props: any) => (
+export const CallsChart = (props: ChartProps) => (
   <LazyWrapper fallback={<ChartLoader />}>
-    <LazyCallsChart {...props} />
+    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    <LazyCallsChart {...(props as any)} />
   </LazyWrapper>
 );
 
-export const RevenueChart = (props: any) => (
+export const RevenueChart = (props: ChartProps) => (
   <LazyWrapper fallback={<ChartLoader />}>
-    <LazyRevenueChart {...props} />
+    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    <LazyRevenueChart {...(props as any)} />
   </LazyWrapper>
 );
 
-export const ConversionFunnel = (props: any) => (
+export const ConversionFunnel = (props: ChartProps) => (
   <LazyWrapper fallback={<ChartLoader />}>
-    <LazyConversionFunnel {...props} />
+    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    <LazyConversionFunnel {...(props as any)} />
   </LazyWrapper>
 );
 

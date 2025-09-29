@@ -46,19 +46,19 @@ export const useInterventions = () => {
     }
   }, []);
 
-  const createIntervention = useCallback(async (interventionData: any) => {
+  const createIntervention = useCallback(async (interventionData: Record<string, unknown>) => {
     try {
       const { error: insertError } = await supabase
         .from('interventions')
         .insert({
-          title: interventionData.title || 'Nouvelle intervention',
-          client_name: interventionData.client_name || 'Client à assigner',
-          address: interventionData.address || 'Adresse à définir',
-          service_type: interventionData.service_type || 'general',
-          priority: interventionData.priority || 'normal',
-          status: interventionData.status || 'planned',
-          scheduled_date: interventionData.scheduled_date || new Date().toISOString().split('T')[0],
-          description: interventionData.description || 'Nouvelle intervention créée'
+          title: (interventionData.title as string) || 'Nouvelle intervention',
+          client_name: (interventionData.client_name as string) || 'Client à assigner',
+          address: (interventionData.address as string) || 'Adresse à définir',
+          service_type: (interventionData.service_type as string) || 'general',
+          priority: (interventionData.priority as string) || 'normal',
+          status: (interventionData.status as string) || 'planned',
+          scheduled_date: (interventionData.scheduled_date as string) || new Date().toISOString().split('T')[0],
+          description: (interventionData.description as string) || 'Nouvelle intervention créée'
         });
 
       if (insertError) throw insertError;
@@ -70,7 +70,7 @@ export const useInterventions = () => {
     }
   }, [fetchInterventions]);
 
-  const updateIntervention = useCallback(async (id: string, updates: any) => {
+  const updateIntervention = useCallback(async (id: string, updates: Record<string, unknown>) => {
     try {
       const { error: updateError } = await supabase
         .from('interventions')
