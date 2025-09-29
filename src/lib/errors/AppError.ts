@@ -12,6 +12,7 @@ import {
 } from './types';
 
 export class AppError extends Error implements IAppError {
+  declare cause?: Error;
   readonly id: string;
   readonly code: ErrorCode;
   readonly category: ErrorCategory;
@@ -48,20 +49,22 @@ export class AppError extends Error implements IAppError {
     this.severity = options.severity;
     this.source = options.source;
     this.timestamp = new Date().toISOString();
-    this.context = options.context;
-    this.correlationId = options.correlationId;
+if (options.context !== undefined) this.context = options.context;
+    if (options.correlationId !== undefined) this.correlationId = options.correlationId;
     this.retryable = options.retryable ?? this.getDefaultRetryable();
-    this.retryAfter = options.retryAfter;
-    this.details = options.details;
+    if (options.retryAfter !== undefined) this.retryAfter = options.retryAfter;
+    if (options.details !== undefined) this.details = options.details;
 
     // Set user message with fallback
-    this.userMessage = options.userMessage ||
-                      UserMessages[options.code] ||
+this.userMessage = options.userMessage ||
+                      UserMessages[options.code as keyof typeof UserMessages] ||
                       'Une erreur inattendue s\'est produite.';
 
     // Preserve the original error stack if provided
-    if (options.cause) {
+if (options.cause) {
       this.stack = options.cause.stack;
+      // preserve cause when supported
+      // @ts-ignore
       this.cause = options.cause;
     }
 

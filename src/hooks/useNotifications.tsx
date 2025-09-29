@@ -27,7 +27,7 @@ export function useP1Notifications(options: NotificationOptions = {
   enableDesktop: true,
   enableToast: true
 }) {
-  const [notifiedCalls, setNotifiedCalls] = useState<Set<string>>(new Set());
+  const [/*notifiedCalls*/, /*setNotifiedCalls*/] = useState<Set<string>>(new Set());
   const [permission, setPermission] = useState<NotificationPermission>('default');
 
   // Demander permission pour notifications desktop

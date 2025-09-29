@@ -44,6 +44,28 @@ export function useWebSocket({
   onDisconnect,
   onError
 }: UseWebSocketOptions = {}) {
+  const handleVapiEvent = useCallback((data: any) => {
+    // Update UI based on event type
+    switch (data?.type) {
+      case 'assistant-request':
+        break;
+      case 'assistant-response':
+        break;
+      case 'tool-call':
+        break;
+      default:
+        break;
+    }
+    onMessage?.({ type: 'vapi-event', data, timestamp: new Date().toISOString() });
+  }, [onMessage]);
+  url,
+  reconnectInterval = 3000,
+  maxReconnectAttempts = 5,
+  onMessage,
+  onConnect,
+  onDisconnect,
+  onError
+}: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [reconnectCount, setReconnectCount] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
@@ -100,8 +122,8 @@ export function useWebSocket({
               // Ping response, connection is alive
               break;
               
-            case 'vapi-event':
-              handleVapiEvent(message.data);
+case 'vapi-event':
+              if (message.data) handleVapiEvent(message.data as any);
               break;
               
             case 'call-started':
@@ -117,9 +139,8 @@ export function useWebSocket({
               break;
               
             case 'handoff-triggered':
-              toast.warning('Call requires human intervention!', {
-                duration: 10000,
-                important: true
+toast.warning('Call requires human intervention!', {
+                duration: 10000
               });
               break;
               
@@ -131,12 +152,12 @@ export function useWebSocket({
               onMessage?.(message);
           }
         } catch (error) {
-          logger.error('Failed to parse WebSocket message:', error);
+          logger.error('Failed to parse WebSocket message:', error instanceof Error ? error : new Error(String(error)));
         }
       };
 
       ws.onerror = (error) => {
-        logger.error('WebSocket error:', error);
+logger.error('WebSocket error:', error as unknown as Error);
         onError?.(error);
       };
 
@@ -164,10 +185,10 @@ export function useWebSocket({
       };
       
     } catch (error) {
-      logger.error('Failed to establish WebSocket connection:', error);
-      onError?.(error as Event);
+logger.error('Failed to establish WebSocket connection:', error instanceof Error ? error : new Error(String(error)));
+      onError?.((error as unknown) as Event);
     }
-  }, [getWebSocketUrl, onConnect, onDisconnect, onError, onMessage, reconnectCount, reconnectInterval, maxReconnectAttempts, handleVapiEvent]);
+  }, [getWebSocketUrl, onConnect, onDisconnect, onError, onMessage, reconnectCount, reconnectInterval, maxReconnectAttempts]);
 
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
@@ -203,8 +224,22 @@ export function useWebSocket({
     return false;
   }, []);
 
-  // Handle VAPI events
-  const handleVapiEvent = useCallback((data: VAPIWebSocketMessage['data']) => {
+// Handle alerts
+  const handleAlert = (alert: any) => {
+    const severity = alert?.severity || 'info';
+    const message = alert?.message || 'System alert';
+    switch (severity) {
+      case 'high':
+      case 'critical':
+        toast.error(message, { duration: 10000 });
+        break;
+      case 'medium':
+        toast.warning(message, { duration: 7000 });
+        break;
+      default:
+        toast.info(message);
+    }
+  };
     
     // Update UI based on event type
     switch (data.type) {
@@ -238,7 +273,7 @@ export function useWebSocket({
     switch (severity) {
       case 'high':
       case 'critical':
-        toast.error(message, { duration: 10000, important: true });
+        toast.error(message, { duration: 10000 });
         break;
       case 'medium':
         toast.warning(message, { duration: 7000 });

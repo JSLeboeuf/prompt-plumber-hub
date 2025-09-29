@@ -93,7 +93,7 @@ export default function OnboardingChecklist({ onDismiss }: OnboardingChecklistPr
         }
       }));
     } catch (error) {
-      logger.error('Erreur vérification onboarding:', error);
+      logger.error('Erreur vérification onboarding:', error instanceof Error ? error : new Error(String(error)));
     }
   };
 

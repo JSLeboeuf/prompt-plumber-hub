@@ -92,12 +92,14 @@ export function useCreateLead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (lead: Partial<Lead>) => {
-      return supabase
+mutationFn: async (lead: Partial<Lead>) => {
+      const { data, error } = await supabase
         .from('leads')
         .insert(lead)
         .select()
         .single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supabase', 'leads'] });
@@ -110,13 +112,15 @@ export function useUpdateCall() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<VapiCall> }) => {
-      return supabase
+mutationFn: async ({ id, updates }: { id: string; updates: Partial<VapiCall> }) => {
+      const { data, error } = await supabase
         .from('vapi_calls')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supabase', 'calls'] });

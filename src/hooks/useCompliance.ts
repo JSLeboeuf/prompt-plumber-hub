@@ -65,7 +65,7 @@ export const useCompliance = () => {
       };
       setComplianceData(metrics);
     } catch (error) {
-      logger.error('Error fetching compliance data:', error);
+      logger.error('Error fetching compliance data:', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoadingCompliance(false);
     }

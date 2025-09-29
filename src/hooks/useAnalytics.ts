@@ -117,7 +117,7 @@ export const useAnalyticsPage = () => {
       ]);
       success("Données actualisées", "Les métriques ont été mises à jour");
     } catch (error) {
-      logger.error('Failed to refresh analytics data:', error);
+      logger.error('Failed to refresh analytics data:', error instanceof Error ? error : new Error(String(error)));
       // Error handling is done in individual functions
     } finally {
       setIsRefreshing(false);
@@ -148,7 +148,7 @@ export const useAnalyticsPage = () => {
         successRate
       };
     } catch (error) {
-      logger.error('Error calculating real-time metrics:', error);
+      logger.error('Error calculating real-time metrics:', error instanceof Error ? error : new Error(String(error)));
       return {
         totalCalls: 0,
         activeCalls: 0,

@@ -252,15 +252,16 @@ export class ErrorHandler {
     }
 
     try {
-      const monitoringData: ErrorMonitoringData = {
+const monitoringData: ErrorMonitoringData = {
         error,
         context,
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'unknown',
         version: process.env.VITE_APP_VERSION || 'unknown',
-        sessionId: context.sessionId,
-        userId: context.userId
-      };
+      } as ErrorMonitoringData;
+
+      if (context.sessionId) (monitoringData as any).sessionId = context.sessionId;
+      if (context.userId) (monitoringData as any).userId = context.userId;
 
       await fetch(this.config.monitoringEndpoint, {
         method: 'POST',

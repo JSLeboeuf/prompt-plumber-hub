@@ -13,7 +13,13 @@ interface PerformanceMetric {
   metadata?: Record<string, unknown>;
 }
 
-interface PerformanceTiming {
+interface AppPerformanceTiming {
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  metadata?: Record<string, unknown>;
+}
   name: string;
   startTime: number;
   endTime?: number;
@@ -23,7 +29,7 @@ interface PerformanceTiming {
 
 class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
-  private timings: Map<string, PerformanceTiming> = new Map();
+  private timings: Map<string, AppPerformanceTiming> = new Map();
   private observers: Map<string, PerformanceObserver> = new Map();
   private reportInterval: number = 60000; // 1 minute
   private maxMetrics: number = 1000;
@@ -76,9 +82,10 @@ class PerformanceMonitor {
 
         // Largest Contentful Paint
         const lcpObserver = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1];
-          this.recordMetric('lcp', lastEntry.startTime, 'ms', {
+const entries = list.getEntries();
+          if (entries.length === 0) return;
+          const lastEntry = entries[entries.length - 1] as PerformanceEntry;
+          this.recordMetric('lcp', (lastEntry as any).startTime, 'ms', {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             element: (lastEntry as any).element?.tagName,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,7 +135,13 @@ class PerformanceMonitor {
   /**
    * Start a performance timing
    */
-  startTiming(name: string, metadata?: Record<string, unknown>): void {
+startTiming(name: string, metadata?: Record<string, unknown>): void {
+    this.timings.set(name, {
+      name,
+      startTime: performance.now(),
+      metadata,
+    } as AppPerformanceTiming);
+  }
     this.timings.set(name, {
       name,
       startTime: performance.now(),

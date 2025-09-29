@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+// RealtimeChannel type import removed to avoid type conflicts with 'postgres_changes' event
 import type {
   RealtimePayload,
   RealtimeInsertPayload,
@@ -27,7 +27,7 @@ export const useRealtimeSubscription = <T = Record<string, unknown>>({
   onDelete,
   enabled = true
 }: UseRealtimeSubscriptionOptions<T>) => {
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const channelRef = useRef<any>(null);
   const subscriptionId = useRef<string>(`${table}_${Date.now()}`);
 
   const cleanup = useCallback(() => {

@@ -514,19 +514,19 @@ function InterventionItem({ intervention }: { intervention: Intervention }) {
             </span>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {intervention.client_name} - {intervention.client_phone || 'N/A'}
+            {intervention.client_name} - {intervention.client?.phone || 'N/A'}
           </p>
           <p className="text-sm text-gray-500">
-            {intervention.address || 'Adresse non spécifiée'}
+            {intervention.client?.address || 'Adresse non spécifiée'}
           </p>
         </div>
         <div className="text-right">
           <p className="text-sm font-medium">
             {intervention.scheduled_time}
           </p>
-          {intervention.assigned_technician && (
+          {(intervention.technician?.first_name || intervention.technician?.last_name) && (
             <p className="text-xs text-gray-500">
-              {intervention.assigned_technician}
+              {[intervention.technician?.first_name, intervention.technician?.last_name].filter(Boolean).join(' ')}
             </p>
           )}
         </div>
@@ -563,7 +563,7 @@ function SMSItem({ sms }: { sms: SMSMessage }) {
             {sms.message}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            À: {sms.customer_phone || 'N/A'} • {new Date(sms.sent_at || '').toLocaleTimeString('fr-CA')}
+            À: {sms.to || 'N/A'} • {new Date(sms.sent_at || '').toLocaleTimeString('fr-CA')}
           </p>
         </div>
       </div>
