@@ -1,17 +1,20 @@
 import { useCallback } from 'react';
+import { useToast } from '@/hooks/useToast';
 
 export function useAnalyticsExport() {
+  const { info } = useToast();
+
   const exportToPDF = useCallback(() => {
-    // TODO: Implement PDF export functionality
-  }, []);
+    info("Fonctionnalité à venir", "L'export PDF sera bientôt disponible");
+  }, [info]);
 
   const exportToExcel = useCallback(() => {
-    // TODO: Implement Excel export functionality
-  }, []);
+    info("Fonctionnalité à venir", "L'export Excel sera bientôt disponible");
+  }, [info]);
 
   const exportToCSV = useCallback(() => {
-    // TODO: Implement CSV export functionality
-  }, []);
+    info("Fonctionnalité à venir", "L'export CSV sera bientôt disponible");
+  }, [info]);
 
   return {
     exportToPDF,

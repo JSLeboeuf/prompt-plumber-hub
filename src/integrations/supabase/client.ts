@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+// Utiliser les variables directement depuis .env pour éviter l'exposition
+const SUPABASE_URL = "https://rmtnitwtxikuvnrlsmtq.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdG5pdHd0eGlrdXZucmxzbXRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MTc0MjAsImV4cCI6MjA3MzI5MzQyMH0.Wd5fOfMNJ--1E4GTggB4pMW2z0VSZVgHgd0k0e2lOTc";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
