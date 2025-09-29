@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,13 +75,13 @@ export default function Calls() {
     }
   };
 
-  // Calculate real-time stats from actual data
-  const stats = {
+  // Memoized stats calculation
+  const stats = useMemo(() => ({
     urgent: calls.filter(c => ['P1', 'P2'].includes(c.priority || '') && (c.status || '') !== 'completed').length,
     normal: calls.filter(c => c.priority === 'normal' && c.status !== 'completed').length,
     resolved: calls.filter(c => c.status === 'completed').length,
     total: calls.length
-  };
+  }), [calls]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,14 +114,18 @@ export default function Calls() {
   };
 
 
-  const filteredCalls = calls.filter(call => {
-    const matchesSearch = call.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          call.phone_number?.includes(searchTerm) ||
-                          call.metadata && typeof call.metadata === 'object' && 
-                          JSON.stringify(call.metadata).toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "tous" || call.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Memoized filtered calls
+  const filteredCalls = useMemo(() => 
+    calls.filter(call => {
+      const matchesSearch = call.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            call.phone_number?.includes(searchTerm) ||
+                            call.metadata && typeof call.metadata === 'object' && 
+                            JSON.stringify(call.metadata).toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "tous" || call.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    }), 
+    [calls, searchTerm, statusFilter]
+  );
 
   if (!isCallManagementAvailable) {
     return (

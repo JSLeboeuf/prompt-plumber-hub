@@ -82,7 +82,7 @@ export default function Interventions() {
     intervention: {
       id: string;
       title: string;
-      description?: string;
+      description?: string | null;
       status: string;
       priority: string;
       scheduled_date?: string;

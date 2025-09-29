@@ -18,7 +18,7 @@ export interface Client {
   status: string | null;
 }
 
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import logger from '@/lib/logger';
 import { getServiceConfig } from '@/config/unified.api.config';
@@ -26,35 +26,20 @@ import { useInterventions } from './useInterventions';
 
 const vapiServiceConfig = getServiceConfig('vapi');
 const isVapiFeatureEnabled = vapiServiceConfig.enabled;
-const vapiDisabledMessage = isVapiFeatureEnabled
-  ? null
-  : 'La fonctionnalité d\'appels VAPI est désactivée ou mal configurée. Configurez VITE_ENABLE_VAPI et VITE_VAPI_PUBLIC_KEY.';
 
-export const useEmergencyCalls = (): {
-  calls: EmergencyCall[];
-  loading: boolean;
-  error: string | null;
-  fetchCalls: () => Promise<void>;
-  createCall: (payload?: Record<string, unknown>) => Promise<void>;
-  updateCall: (id: string, updates?: Record<string, unknown>) => Promise<void>;
-} => {
-  const [calls, setCalls] = useState<EmergencyCall[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const CALLS_KEY = ['vapi_calls'] as const;
+const CLIENTS_KEY = ['clients'] as const;
 
-  const fetchCalls = useCallback(async () => {
-    try {
-      setLoading(true);
+export const useEmergencyCalls = () => {
+  const queryClient = useQueryClient();
+
+  const { data: calls = [], isLoading: loading, error } = useQuery({
+    queryKey: CALLS_KEY,
+    queryFn: async () => {
       if (!isVapiFeatureEnabled) {
-        if (vapiDisabledMessage) {
-          setError(vapiDisabledMessage);
-        }
-        setCalls([]);
-        logger.warn('Skipping call fetch because VAPI is disabled or not configured');
-        return;
+        logger.warn('VAPI disabled');
+        return [];
       }
-
-      setError(null);
 
       const { data, error: fetchError } = await supabase
         .from('vapi_calls')
@@ -62,133 +47,93 @@ export const useEmergencyCalls = (): {
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
-
-      setCalls((data || []).map(call => ({ 
+      return (data || []).map(call => ({ 
         ...call, 
         metadata: call.metadata as Record<string, unknown> | null 
-      })));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
-      setError(errorMessage);
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Error fetching calls', normalizedError);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      })) as EmergencyCall[];
+    },
+    staleTime: 30000,
+    gcTime: 300000,
+    enabled: isVapiFeatureEnabled,
+  });
 
-  const createCall = useCallback(async (payload: Record<string, unknown> = {}) => {
-    if (!isVapiFeatureEnabled) {
-      if (vapiDisabledMessage) {
-        setError(vapiDisabledMessage);
+  const { mutateAsync: createCall } = useMutation({
+    mutationFn: async (payload: Record<string, unknown> = {}) => {
+      if (!isVapiFeatureEnabled) {
+        logger.warn('VAPI disabled');
+        return;
       }
-      logger.warn('Skipping call creation because VAPI is disabled or not configured');
-      return;
-    }
 
-    try {
-      const { error: insertError } = await supabase
-        .from('vapi_calls')
-        .insert([{
-          call_id: (payload.call_id as string) || `call_${Date.now()}`,
-          phone_number: (payload.phone_number as string) || null,
-          status: 'pending',
-          priority: (payload.priority as string) || 'normal',
-          metadata: (payload.metadata || {}) as never
-        }]);
+      const { error } = await supabase.from('vapi_calls').insert([{
+        call_id: (payload.call_id as string) || `call_${Date.now()}`,
+        phone_number: (payload.phone_number as string) || null,
+        status: 'pending',
+        priority: (payload.priority as string) || 'normal',
+        metadata: (payload.metadata || {}) as never
+      }]);
 
-      if (insertError) throw insertError;
-      await fetchCalls();
-    } catch (err) {
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Error creating call', normalizedError);
-      throw err;
-    }
-  }, [fetchCalls]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CALLS_KEY });
+    },
+  });
 
-  const updateCall = useCallback(async (id: string, updates: Record<string, unknown> = {}) => {
-    if (!isVapiFeatureEnabled) {
-      if (vapiDisabledMessage) {
-        setError(vapiDisabledMessage);
+  const { mutateAsync: updateCall } = useMutation({
+    mutationFn: async ({ id, updates = {} }: { id: string; updates?: Record<string, unknown> }) => {
+      if (!isVapiFeatureEnabled) {
+        logger.warn('VAPI disabled');
+        return;
       }
-      logger.warn('Skipping call update because VAPI is disabled or not configured', { id });
-      return;
-    }
 
-    try {
-      const { error: updateError } = await supabase
-        .from('vapi_calls')
-        .update({
-          status: (updates.status as string) || 'active',
-          ...updates
-        })
+      const { error } = await supabase.from('vapi_calls')
+        .update({ status: (updates.status as string) || 'active', ...updates })
         .eq('id', id);
 
-      if (updateError) throw updateError;
-      await fetchCalls();
-    } catch (err) {
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Error updating call', { error: normalizedError, id, updates });
-      throw err;
-    }
-  }, [fetchCalls]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CALLS_KEY });
+    },
+  });
 
-  useEffect(() => {
-    fetchCalls();
-  }, [fetchCalls]);
+  const fetchCalls = () => queryClient.invalidateQueries({ queryKey: CALLS_KEY });
 
   return {
     calls,
     loading,
-    error,
-    fetchCalls,
+    error: error ? (error instanceof Error ? error.message : 'Erreur de chargement') : null,
     createCall,
-    updateCall
+    updateCall: (id: string, updates: Record<string, unknown> = {}) => updateCall({ id, updates }),
+    fetchCalls,
   };
 };
 
-export const useClients = (): {
-  clients: Client[];
-  loading: boolean;
-  error: string | null;
-  fetchClients: () => Promise<void>;
-} => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useClients = () => {
+  const queryClient = useQueryClient();
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const { data: clients = [], isLoading: loading, error } = useQuery({
+    queryKey: CLIENTS_KEY,
+    queryFn: async () => {
       const { data, error: fetchError } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
+      return data as Client[];
+    },
+    staleTime: 60000,
+    gcTime: 300000,
+  });
 
-      setClients(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
-      setError(errorMessage);
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Error fetching clients', normalizedError);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+  const fetchClients = () => queryClient.invalidateQueries({ queryKey: CLIENTS_KEY });
 
   return {
     clients,
     loading,
-    error,
-    fetchClients
+    error: error ? (error instanceof Error ? error.message : 'Erreur de chargement') : null,
+    fetchClients,
   };
 };
 
