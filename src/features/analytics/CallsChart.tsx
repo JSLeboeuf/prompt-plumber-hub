@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useHeavyCalculation } from "@/hooks/useOptimizedHooks";
 
 interface CallsData {
   time: string;
@@ -21,18 +22,22 @@ const CallsChart = memo<CallsChartProps>(function CallsChart({
 }) {
   const [timeframe, setTimeframe] = useState("24h");
 
-  // Memoized data processing to avoid recalculation on every render
-  const processedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
-    
-    // Pre-process data for better performance
-    return data.map((item, index) => ({
-      ...item,
-      // Add computed properties if needed
-      index,
-      formattedTime: item.time,
-    }));
-  }, [data]);
+  // Optimisation lourde avec cache pour le traitement des données
+  const processedData = useHeavyCalculation(
+    (rawData: CallsData[]) => {
+      if (!rawData || rawData.length === 0) return [];
+      
+      // Pre-process data for better performance
+      return rawData.map((item, index) => ({
+        ...item,
+        // Add computed properties if needed
+        index,
+        formattedTime: item.time,
+      }));
+    },
+    [data],
+    `chart-data-${data?.length || 0}-${timeframe}`
+  );
 
   // Memoized timeframe options to prevent recreating on each render
   const timeframeOptions = useMemo(() => [

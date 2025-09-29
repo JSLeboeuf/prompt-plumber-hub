@@ -17,7 +17,45 @@ function resolveBaseUrl(): string {
 
 export const API_BASE_URL = resolveBaseUrl();
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache pendant 5 minutes par défaut
+      staleTime: 5 * 60 * 1000,
+      // Garde en cache pendant 10 minutes
+      gcTime: 10 * 60 * 1000,
+      // Retry intelligent
+      retry: (failureCount, error) => {
+        // Ne pas retry les erreurs 4xx
+        if (error instanceof Error && error.message.includes('4')) return false;
+        return failureCount < 3;
+      },
+      // Refetch uniquement si stale
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always',
+      // Background updates pour les données critiques
+      refetchInterval: (query) => {
+        // Refetch automatique pour les données temps réel
+        if (query.queryKey.includes('calls') || query.queryKey.includes('alerts')) {
+          return 30000; // 30 secondes
+        }
+        // Données moins critiques
+        if (query.queryKey.includes('analytics') || query.queryKey.includes('stats')) {
+          return 5 * 60 * 1000; // 5 minutes
+        }
+        return false; // Pas de refetch automatique par défaut
+      }
+    },
+    mutations: {
+      // Retry pour les mutations importantes
+      retry: 1,
+      // Invalidation optimiste
+      onSuccess: () => {
+        // Les invalidations spécifiques sont gérées par mutation
+      }
+    }
+  }
+});
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

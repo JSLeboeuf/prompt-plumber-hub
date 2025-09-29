@@ -31,6 +31,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { AnalyticsLoadingState } from "@/components/analytics/AnalyticsLoadingState";
 import { AnalyticsErrorState } from "@/components/analytics/AnalyticsErrorState";
 import { SearchInput } from "@/components/analytics/SearchInput";
+import { useHeavyCalculation } from "@/hooks/useOptimizedHooks";
 
 import { DashboardMetrics } from "@/types/dashboard";
 import { supabase } from '@/integrations/supabase/client';
@@ -149,42 +150,46 @@ export default function Analytics() {
     }
   }, [selectedPeriod, analytics, calls, success, showError]);
 
-  // Real-time metrics calculation with proper error handling
-  const realTimeMetrics = useMemo(() => {
-    try {
-      const safeCallsLength = calls?.length || 0;
-      const activeCalls = calls?.filter(c => c.status === 'active')?.length || 0;
-      const completedCalls = calls?.filter(c => c.status === 'completed')?.length || 0;
-      const urgentCalls = calls?.filter(c => c.priority === 'P1')?.length || 0;
+  // Real-time metrics calculation avec optimisation mémoire
+  const realTimeMetrics = useHeavyCalculation(
+    (callsData: typeof calls) => {
+      try {
+        const safeCallsLength = callsData?.length || 0;
+        const activeCalls = callsData?.filter(c => c.status === 'active')?.length || 0;
+        const completedCalls = callsData?.filter(c => c.status === 'completed')?.length || 0;
+        const urgentCalls = callsData?.filter(c => c.priority === 'P1')?.length || 0;
 
-      const totalDuration = calls?.reduce((acc, call) => acc + (call.duration || 0), 0) || 0;
-      const avgDuration = safeCallsLength > 0 ? Math.round(totalDuration / safeCallsLength) : 0;
+        const totalDuration = callsData?.reduce((acc, call) => acc + (call.duration || 0), 0) || 0;
+        const avgDuration = safeCallsLength > 0 ? Math.round(totalDuration / safeCallsLength) : 0;
 
-      const successRate = safeCallsLength > 0
-        ? Math.round((completedCalls / safeCallsLength) * 100)
-        : 0;
+        const successRate = safeCallsLength > 0
+          ? Math.round((completedCalls / safeCallsLength) * 100)
+          : 0;
 
-      return {
-        totalCalls: safeCallsLength,
-        activeCalls,
-        completedCalls,
-        urgentCalls,
-        avgDuration,
-        successRate
-      };
-    } catch (calcError) {
-      // Return safe defaults if calculation fails
-      logger.warn('Metrics calculation failed', { error: calcError instanceof Error ? calcError.message : 'Unknown calculation error' });
-      return {
-        totalCalls: 0,
-        activeCalls: 0,
-        completedCalls: 0,
-        urgentCalls: 0,
-        avgDuration: 0,
-        successRate: 0
-      };
-    }
-  }, [calls]);
+        return {
+          totalCalls: safeCallsLength,
+          activeCalls,
+          completedCalls,
+          urgentCalls,
+          avgDuration,
+          successRate
+        };
+      } catch (calcError) {
+        // Return safe defaults if calculation fails
+        logger.warn('Metrics calculation failed', { error: calcError instanceof Error ? calcError.message : 'Unknown calculation error' });
+        return {
+          totalCalls: 0,
+          activeCalls: 0,
+          completedCalls: 0,
+          urgentCalls: 0,
+          avgDuration: 0,
+          successRate: 0
+        };
+      }
+    },
+    [calls],
+    `metrics-${calls?.length || 0}-${selectedPeriod}`
+  );
 
   // KPI cards with semantic colors
   const kpiCards = useMemo(() => [
