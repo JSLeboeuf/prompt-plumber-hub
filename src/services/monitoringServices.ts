@@ -40,14 +40,14 @@ export const monitoringServices = {
   logAudit: async (entry: AuditLogEntry): Promise<string | null> => {
     try {
       const { data, error } = await supabase.rpc('log_audit_comprehensive', {
-        p_user_id: entry.user_id || null,
+        p_user_id: entry.user_id as string,
         p_action: entry.action,
         p_resource_type: entry.resource_type,
-        p_resource_id: entry.resource_id || null,
+        p_resource_id: entry.resource_id as string,
         p_old_values: entry.old_values || null,
         p_new_values: entry.new_values || null,
         p_metadata: entry.metadata || {},
-        p_ip_address: entry.ip_address || null,
+        p_ip_address: entry.ip_address || undefined,
         p_user_agent: entry.user_agent || navigator.userAgent
       });
       
@@ -96,7 +96,7 @@ export const monitoringServices = {
         p_event_type: event.event_type,
         p_severity: event.severity,
         p_description: event.description,
-        p_user_id: event.user_id || null,
+        p_user_id: event.user_id as string,
         p_ip_address: event.ip_address || null,
         p_metadata: event.metadata || {}
       });
@@ -303,17 +303,19 @@ export class AutoPerformanceTracker {
             if (entries.length > 0) {
               const lastEntry = entries[entries.length - 1];
               
-              monitoringServices.trackPerformance({
-              metric_name: 'largest_contentful_paint',
-              metric_value: lastEntry.startTime,
-                component_name: window.location.pathname
-              });
+              if (lastEntry && lastEntry.startTime) {
+                monitoringServices.trackPerformance({
+                  metric_name: 'largest_contentful_paint',
+                  metric_value: lastEntry.startTime,
+                  component_name: window.location.pathname
+                });
+              }
             }
           });
           
           observer.observe({ entryTypes: ['largest-contentful-paint'] });
         } catch (err) {
-          logger.warn('LCP observer setup failed:', err);
+          logger.warn('LCP observer setup failed:', { error: (err as Error).message });
         }
       }
     }
