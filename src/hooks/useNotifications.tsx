@@ -1,8 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { logger } from "@/lib/logger";
-import { toast } from '@/components/ui/sonner';
-// Icons removed - not used in current implementation
-import { useWebSocket } from './useWebSocket';
+import { toast } from 'sonner';
 
 interface NotificationOptions {
   enableSound?: boolean;
@@ -29,7 +27,6 @@ export function useP1Notifications(options: NotificationOptions = {
   enableDesktop: true,
   enableToast: true
 }) {
-  const { activeCalls } = useWebSocket();
   const [notifiedCalls, setNotifiedCalls] = useState<Set<string>>(new Set());
   const [permission, setPermission] = useState<NotificationPermission>('default');
 
@@ -59,8 +56,7 @@ export function useP1Notifications(options: NotificationOptions = {
       icon: '/icon-192.png',
       badge: '/badge-72.png',
       tag: call.id,
-      requireInteraction: true,
-      vibrate: [200, 100, 200, 100, 200]
+      requireInteraction: true
     });
 
     notification.onclick = () => {
@@ -74,62 +70,15 @@ export function useP1Notifications(options: NotificationOptions = {
   const sendToastNotification = useCallback((call: CallData) => {
     if (!options.enableToast) return;
 
-    toast({
-      title: "🚨 URGENCE P1 DÉTECTÉE!",
-      description: (
-        <div className="space-y-2">
-          <p className="font-medium">{call.customerName || call.phoneNumber}</p>
-          <p className="text-sm">{call.transcript?.substring(0, 100) || 'Appel urgent en cours'}</p>
-          <div className="flex gap-2 mt-2">
-            <button
-              className="px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"
-              onClick={() => window.location.href = '/real-time'}
-            >
-              Voir maintenant
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700"
-              onClick={() => window.open(`tel:${call.phoneNumber}`)}
-            >
-              Appeler client
-            </button>
-          </div>
-        </div>
-      ),
-      duration: 10000,
-      className: "border-red-500 bg-red-50 animate-pulse-urgent"
+    toast.error("🚨 URGENCE P1 DÉTECTÉE!", {
+      description: `Client: ${call.customerName || 'Inconnu'} - ${call.phoneNumber || 'N/A'}`
     });
   }, [options.enableToast]);
 
-  // Surveiller les appels P1
-  useEffect(() => {
-    const p1Calls = activeCalls.filter((call: CallData) => call.priority === 'P1');
-
-    p1Calls.forEach((call: CallData) => {
-      if (!notifiedCalls.has(call.id)) {
-        // Nouvelle urgence P1 détectée!
-        playAlertSound();
-        sendDesktopNotification(call);
-        sendToastNotification(call);
-
-        setNotifiedCalls(prev => new Set(prev).add(call.id));
-      }
-    });
-
-    // Nettoyer les appels terminés
-    const activeIds = new Set(activeCalls.map((c: CallData) => c.id));
-    setNotifiedCalls(prev => {
-      const newSet = new Set<string>();
-      prev.forEach(id => {
-        if (activeIds.has(id)) newSet.add(id);
-      });
-      return newSet;
-    });
-  }, [activeCalls, notifiedCalls, playAlertSound, sendDesktopNotification, sendToastNotification]);
-
   return {
-    p1Count: activeCalls.filter((c: CallData) => c.priority === 'P1').length,
-    hasP1Active: activeCalls.some((c: CallData) => c.priority === 'P1'),
+    playAlertSound,
+    sendDesktopNotification,
+    sendToastNotification,
     notificationPermission: permission
   };
 }
@@ -145,11 +94,8 @@ export function useSLANotifications() {
         .then(res => res.json())
         .then((alerts: AlertData[]) => {
           if (alerts.length > 0) {
-            toast({
-              title: "⚠️ Violations SLA détectées",
-              description: `${alerts.length} appels dépassent les temps de réponse SLA`,
-              duration: 5000,
-              className: "border-yellow-500 bg-yellow-50"
+            toast.warning("⚠️ Violations SLA détectées", {
+              description: `${alerts.length} appels dépassent les temps de réponse SLA`
             });
           }
         })
@@ -174,11 +120,8 @@ export function useConstraintNotifications() {
         .then((alerts: AlertData[]) => {
           alerts.forEach((alert: AlertData) => {
             if (alert.severity === 'critical') {
-              toast({
-                title: "🚫 Contrainte critique violée",
-                description: alert.message,
-                duration: 7000,
-                className: "border-orange-500 bg-orange-50"
+              toast.error("🚫 Contrainte critique violée", {
+                description: alert.message
               });
             }
           });

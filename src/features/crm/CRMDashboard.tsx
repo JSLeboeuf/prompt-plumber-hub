@@ -230,7 +230,19 @@ export function CRMDashboard() {
                   {alerts.slice(0, 5).map((alert) => (
                     <AlertItem 
                       key={alert.id} 
-                      alert={alert}
+                      alert={{
+                        id: alert.id,
+                        type: (alert as any).type || 'system',
+                        title: alert.title,
+                        message: alert.message || 'Aucun message',
+                        severity: (alert as any).severity || 'medium',
+                        timestamp: (alert as any).timestamp || new Date().toISOString(),
+                        priority: (alert as any).priority,
+                        client_name: (alert as any).client_name,
+                        client_phone: (alert as any).client_phone,
+                        minutes_since_created: (alert as any).minutes_since_created,
+                        status: (alert as any).status
+                      }}
                       onAcknowledge={handleAcknowledgeAlert}
                       onResolve={handleResolveAlert}
                     />
@@ -424,6 +436,11 @@ interface AlertItemProps {
     message: string;
     severity: 'low' | 'medium' | 'high' | 'critical';
     timestamp: string;
+    priority?: string;
+    client_name?: string;
+    client_phone?: string;
+    minutes_since_created?: number;
+    status?: string;
   };
   onAcknowledge: (id: string) => void;
   onResolve: (id: string) => void;
@@ -497,19 +514,19 @@ function InterventionItem({ intervention }: { intervention: Intervention }) {
             </span>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {intervention.client_name} - {intervention.client_phone}
+            {intervention.client_name} - {intervention.client_phone || 'N/A'}
           </p>
           <p className="text-sm text-gray-500">
-            {intervention.service_address}
+            {intervention.address || 'Adresse non spécifiée'}
           </p>
         </div>
         <div className="text-right">
           <p className="text-sm font-medium">
             {intervention.scheduled_time}
           </p>
-          {intervention.technician_name && (
+          {intervention.assigned_technician && (
             <p className="text-xs text-gray-500">
-              {intervention.technician_name}
+              {intervention.assigned_technician}
             </p>
           )}
         </div>
@@ -546,7 +563,7 @@ function SMSItem({ sms }: { sms: SMSMessage }) {
             {sms.message}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            À: {sms.to_number} • {new Date(sms.sent_at || '').toLocaleTimeString('fr-CA')}
+            À: {sms.customer_phone || 'N/A'} • {new Date(sms.sent_at || '').toLocaleTimeString('fr-CA')}
           </p>
         </div>
       </div>

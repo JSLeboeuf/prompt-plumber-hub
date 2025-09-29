@@ -155,7 +155,7 @@ const CallsTable = memo<CallsTableProps>(function CallsTable({ calls, showAction
                 {getServiceFromMetadata(call.metadata)}
               </TableCell>
               <TableCell className="text-sm text-foreground" data-testid={`text-tag-${call.id}`}>
-                {call.metadata?.['tag'] || call.metadata?.['intent'] || "—"}
+                {String(call.metadata?.['tag'] || call.metadata?.['intent'] || "—")}
               </TableCell>
               {showActions && (
                 <TableCell>

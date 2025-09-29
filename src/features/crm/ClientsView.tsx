@@ -43,14 +43,6 @@ export function ClientsView() {
     }
   };
 
-  const _getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'active': return 'text-green-600 bg-green-100';
-      case 'inactive': return 'text-gray-600 bg-gray-100';
-      case 'blacklist': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
 
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/\D/g, '');
@@ -308,13 +300,7 @@ function ClientDetails({
                 <p className="text-sm text-gray-500">Aucune intervention</p>
               ) : (
                 <div className="space-y-2">
-                  {history?.interventions.slice(0, 5).map((intervention: {
-                    id: string;
-                    service_type: string;
-                    created_at: string;
-                    status?: string;
-                    description?: string;
-                  }) => (
+                  {history?.interventions.slice(0, 5).map((intervention) => (
                     <div key={intervention.id} className="p-3 border rounded-lg">
                       <div className="flex items-center justify-between">
                         <span className="font-medium">{intervention.service_type}</span>
@@ -323,7 +309,7 @@ function ClientDetails({
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
-                        {intervention.problem_description}
+                        {intervention.description || 'Aucune description'}
                       </p>
                     </div>
                   ))}
@@ -338,13 +324,7 @@ function ClientDetails({
                 <p className="text-sm text-gray-500">Aucun SMS</p>
               ) : (
                 <div className="space-y-2">
-                  {history?.sms.slice(0, 5).map((sms: {
-                    id: string;
-                    message: string;
-                    sent_at: string;
-                    status?: string;
-                    direction?: 'inbound' | 'outbound';
-                  }) => (
+                  {history?.sms.filter((item: any) => item.message && item.sent_at).slice(0, 5).map((sms: any) => (
                     <div key={sms.id} className="p-3 border rounded-lg">
                       <div className="flex items-center justify-between">
                         <span className={cn(
