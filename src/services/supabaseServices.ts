@@ -69,10 +69,11 @@ export const supabaseServices = {
     }
   },
 
-  getDashboardMetrics: async () => {
+  getDashboardMetrics: async (timePeriod: '1h' | '24h' | '7d' | '30d' = '24h') => {
     try {
-      const { data, error } = await supabase.rpc('get_dashboard_metrics_optimized', {
-        time_period: '24h'
+      // Use the new ultra-fast RPC function
+      const { data, error } = await supabase.rpc('get_dashboard_metrics_ultra_fast', {
+        time_period: timePeriod
       });
       
       if (error) {

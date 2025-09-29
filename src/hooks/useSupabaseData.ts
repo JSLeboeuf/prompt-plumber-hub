@@ -50,10 +50,10 @@ export function useSupabaseSMSLogs(limit = 20) {
 }
 
 // Hook pour les métriques du dashboard
-export function useSupabaseDashboardMetrics() {
+export function useSupabaseDashboardMetrics(timePeriod: '1h' | '24h' | '7d' | '30d' = '24h') {
   return useQuery({
-    queryKey: ['supabase', 'dashboard_metrics'],
-    queryFn: () => supabaseServices.getDashboardMetrics(),
+    queryKey: ['supabase', 'dashboard_metrics', timePeriod],
+    queryFn: () => supabaseServices.getDashboardMetrics(timePeriod),
     refetchInterval: 60000, // Refresh chaque minute
   });
 }

@@ -1,99 +1,87 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import logger from '@/lib/logger';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { optimizedServices } from '@/services/optimizedServices';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { logger } from '@/lib/logger';
 
-interface DashboardMetrics {
-  totalCalls: number;
-  activeCalls: number;
-  activeClients: number;
-  successRate: number;
-}
+/**
+ * Phase 3: Ultra-fast dashboard hook using optimized RPC functions
+ */
 
-interface Call {
-  id: string;
-  customer_name: string | null;
-  created_at: string | null;
-  status: string | null;
-  priority: string | null;
-}
-
-export const useUltraFastDashboard = () => {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalCalls: 0,
-    activeCalls: 0,
-    activeClients: 0,
-    successRate: 0
-  });
-  const [recentCalls, setRecentCalls] = useState<Call[]>([]);
-  const [urgentCalls, setUrgentCalls] = useState<Call[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch dashboard metrics
-      const { data: metricsData, error: metricsError } = await supabase
-        .rpc('get_dashboard_metrics_optimized', { time_period: '24h' });
-
-      if (metricsError) throw metricsError;
-
-      // Fetch recent calls
-      const { data: callsData, error: callsError } = await supabase
-        .from('vapi_calls')
-        .select('id, customer_name, created_at, status, priority')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (callsError) throw callsError;
-
-      // Fetch urgent calls
-      const { data: urgentData, error: urgentError } = await supabase
-        .from('vapi_calls')
-        .select('id, customer_name, created_at, status, priority')
-        .in('priority', ['P1', 'P2'])
-        .neq('status', 'completed')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (urgentError) throw urgentError;
-
-      setMetrics({
-        totalCalls: (metricsData as any)?.totalCalls || 0,
-        activeCalls: (metricsData as any)?.activeCalls || 0,
-        activeClients: (metricsData as any)?.activeClients || 0,
-        successRate: (metricsData as any)?.successRate || 0
-      });
-
-      setRecentCalls(callsData || []);
-      setUrgentCalls(urgentData || []);
-
-    } catch (err) {
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Dashboard data fetch error', normalizedError);
-      setError(normalizedError.message);
-    } finally {
-      setLoading(false);
+export const useUltraFastDashboard = (timePeriod: '1h' | '24h' | '7d' | '30d' = '24h') => {
+  const queryClient = useQueryClient();
+  
+  const {
+    data: metrics,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['dashboard-metrics-ultra-fast', timePeriod],
+    queryFn: () => optimizedServices.getDashboardMetricsUltraFast(timePeriod),
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchInterval: 60000,
+    retry: (failureCount, error) => {
+      logger.warn('Dashboard metrics retry:', { failureCount, error: error as Error });
+      return failureCount < 2;
     }
-  }, []);
+  });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+  const handleRealtimeUpdate = useCallback((payload: any) => {
+    logger.info('Real-time dashboard update:', payload.eventType);
+    queryClient.invalidateQueries({ queryKey: ['dashboard-metrics-ultra-fast'] });
+  }, [queryClient]);
+
+  useRealtimeSubscription({
+    table: 'vapi_calls',
+    event: '*',
+    onInsert: handleRealtimeUpdate,
+    onUpdate: handleRealtimeUpdate,
+    onDelete: handleRealtimeUpdate,
+    enabled: true
+  });
 
   return {
-    stats: {
-      totalClients: metrics.activeClients,
-      totalCalls: metrics.totalCalls,
-      totalInterventions: 0,
-      activeClients: metrics.activeClients
+    metrics: metrics || {
+      totalCalls: 0,
+      activeCalls: 0,
+      completedCalls: 0,
+      avgDuration: 0,
+      urgentCalls: 0,
+      activeClients: 0,
+      successRate: 0,
+      recentCalls: [],
+      timeRange: timePeriod,
+      timestamp: Date.now()
     },
-    metrics,
-    recentCalls,
-    urgentCalls,
-    loading,
-    error
+    isLoading,
+    error,
+    refetch,
+    refresh: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics-ultra-fast'] });
+    }
   };
+};
+
+export const useBatchOperations = () => {
+  const queryClient = useQueryClient();
+
+  const batchUpdateStatus = useCallback(async (callIds: string[], status: string) => {
+    try {
+      const result = await optimizedServices.batchUpdateCallStatus(callIds, status);
+      
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['dashboard-metrics-ultra-fast'] });
+        queryClient.invalidateQueries({ queryKey: ['vapi-calls'] });
+      }
+      
+      return result;
+    } catch (error) {
+      logger.error('Batch operation error:', error as Error);
+      return { success: false, error: 'Batch operation failed' };
+    }
+  }, [queryClient]);
+
+  return { batchUpdateStatus };
 };

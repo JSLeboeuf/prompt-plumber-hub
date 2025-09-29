@@ -1176,6 +1176,10 @@ export type Database = {
         Args: { time_period?: string }
         Returns: Json
       }
+      get_dashboard_metrics_ultra_fast: {
+        Args: { time_period?: string }
+        Returns: Json
+      }
       get_dashboard_snapshot: {
         Args: { time_period?: string }
         Returns: Json

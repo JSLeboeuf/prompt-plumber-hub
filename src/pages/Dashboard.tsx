@@ -20,36 +20,36 @@ import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { metrics, recentCalls, urgentCalls, loading } = useUltraFastDashboard();
+  const { metrics, isLoading } = useUltraFastDashboard('24h');
 
   const kpiCards = [
     {
       title: "Appels aujourd'hui",
-      value: metrics.totalCalls,
+      value: (metrics as any).totalCalls || 0,
       icon: Phone,
       action: () => navigate('/dashboard/calls')
     },
     {
       title: "Interventions actives", 
-      value: metrics.activeCalls,
+      value: (metrics as any).activeCalls || 0,
       icon: Wrench,
       action: () => navigate('/dashboard/interventions')
     },
     {
       title: "Clients actifs",
-      value: metrics.activeClients,
+      value: (metrics as any).activeClients || 0,
       icon: Users,
       action: () => navigate('/dashboard/crm')
     },
     {
       title: "Taux réussite",
-      value: `${metrics.successRate}%`,
+      value: `${(metrics as any).successRate || 0}%`,
       icon: TrendingUp,
       action: () => navigate('/dashboard/analytics')
     }
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -100,9 +100,9 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {urgentCalls.length > 0 ? (
+            {((metrics as any).recentCalls || []).filter((call: any) => call.priority === 'P1').length > 0 ? (
               <div className="space-y-3">
-                {urgentCalls.map((call) => (
+                {((metrics as any).recentCalls || []).filter((call: any) => call.priority === 'P1').map((call: any) => (
                   <div 
                     key={call.id}
                     className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
@@ -143,7 +143,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentCalls.slice(0, 4).map((call) => (
+              {((metrics as any).recentCalls || []).slice(0, 4).map((call: any) => (
                 <div key={call.id} className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2" />
                   <div className="flex-1">
