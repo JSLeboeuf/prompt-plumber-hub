@@ -24,7 +24,8 @@ export const useAnalyticsExport = () => {
       // Simulate export process with validation
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const _exportData = {
+      // Process export data
+      const exportData = {
         period: data.period,
         analytics: data.analytics || {},
         calls: data.calls.slice(0, 100), // Limit for performance

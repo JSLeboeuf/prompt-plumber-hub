@@ -99,7 +99,7 @@ export function ClientsView() {
           <div className="flex gap-2 mt-3">
             <select 
               className="px-3 py-1 text-sm border rounded-lg"
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value ? [e.target.value] : undefined }))}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value ? [e.target.value] : [] }))}
             >
               <option value="">Tous les statuts</option>
               <option value="active">Actifs</option>
@@ -107,7 +107,7 @@ export function ClientsView() {
             </select>
             <select 
               className="px-3 py-1 text-sm border rounded-lg"
-              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value ? [e.target.value] : undefined }))}
+              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value ? [e.target.value] : [] }))}
             >
               <option value="">Toutes priorités</option>
               <option value="P1">P1 - Urgent</option>

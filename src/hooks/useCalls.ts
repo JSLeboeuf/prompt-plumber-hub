@@ -24,7 +24,7 @@ export function useCalls(filters?: CallFilters) {
     queryKey,
     enabled: callsFeatureEnabled,
     placeholderData: [],
-    meta: callsFeatureEnabled ? undefined : { disabledReason: callsFeatureDisabledReason },
+    meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const endpoint = searchSuffix ? `/api/calls?${searchSuffix}` : `/api/calls`;
       const response = await apiRequest("GET", endpoint);

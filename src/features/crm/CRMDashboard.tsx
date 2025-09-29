@@ -46,7 +46,7 @@ export function CRMDashboard() {
   const { data: recentSMS = [] } = useQuery({
     queryKey: ['recent-sms'],
     queryFn: () => smsService.getSMSMessages({ 
-      dateFrom: new Date().toISOString().split('T')[0]
+      dateFrom: new Date().toISOString().split('T')[0] || ""
     }),
     refetchInterval: 30000
   });
@@ -97,7 +97,7 @@ export function CRMDashboard() {
       toast.success('Alerte confirmée');
       refetchAlerts();
     } catch (error) {
-      logger.error('Failed to acknowledge alert:', error);
+      logger.error('Failed to acknowledge alert:', error instanceof Error ? error : new Error('Unknown error'));
       toast.error('Erreur lors de la confirmation');
     }
   };
@@ -108,7 +108,7 @@ export function CRMDashboard() {
       toast.success('Alerte résolue');
       refetchAlerts();
     } catch (error) {
-      logger.error('Failed to resolve alert:', error);
+      logger.error('Failed to resolve alert:', error instanceof Error ? error : new Error('Unknown error'));
       toast.error('Erreur lors de la résolution');
     }
   };
@@ -213,7 +213,7 @@ export function CRMDashboard() {
                 value={formatCurrency(stats?.monthRevenue)}
                 subtitle={`Total: ${formatCurrency(stats?.totalRevenue)}`}
                 icon={DollarSign}
-                color="yellow"
+                color="orange"
               />
             </div>
 
