@@ -10,7 +10,9 @@ import type {
   WebhookInterventionData,
   WebhookFeedbackData
 } from '@/types/api.types';
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
+import { getServiceConfig } from '@/config/unified.api.config';
+import type { UnifiedAPIConfig } from '@/config/unified.api.config';
 
 export interface VapiCallRequest {
   phoneNumber: string;
@@ -46,12 +48,74 @@ export interface SupportFeedbackRequest {
   metadata?: Record<string, unknown>;
 }
 
+type DisabledFeatureResponse = {
+  disabled: true;
+  reason: string;
+};
+
+type FeatureKey = 'vapi' | 'sms' | 'maps' | 'automation';
+
+function getFeatureAvailability<T extends FeatureKey>(feature: T):
+  | { enabled: true; config: UnifiedAPIConfig['services'][T] }
+  | { enabled: false; reason: string } {
+  const config = getServiceConfig(feature);
+
+  if (config.enabled) {
+    return { enabled: true as const, config };
+  }
+
+  let reason = 'Feature disabled in configuration';
+
+  switch (feature) {
+    case 'vapi': {
+      const vapiConfig = config as UnifiedAPIConfig['services']['vapi'];
+      reason = vapiConfig.publicKey
+        ? 'VITE_ENABLE_VAPI est désactivé'
+        : 'Clé publique VAPI manquante';
+      break;
+    }
+    case 'sms': {
+      const smsConfig = config as UnifiedAPIConfig['services']['sms'];
+      reason = smsConfig.accountSid
+        ? 'VITE_ENABLE_SMS est désactivé'
+        : 'Identifiant de compte Twilio manquant';
+      break;
+    }
+    case 'maps': {
+      const mapsConfig = config as UnifiedAPIConfig['services']['maps'];
+      reason = mapsConfig.apiKey
+        ? 'VITE_ENABLE_MAPS est désactivé'
+        : 'Clé Google Maps manquante';
+      break;
+    }
+    case 'automation': {
+      const automationConfig = config as UnifiedAPIConfig['services']['automation'];
+      reason = automationConfig.baseUrl
+        ? 'VITE_ENABLE_AUTOMATION est désactivé'
+        : 'URL n8n manquante';
+      break;
+    }
+    default:
+      reason = 'Fonctionnalité désactivée';
+  }
+
+  return { enabled: false as const, reason };
+}
+
 // VAPI Voice AI Service
 export const VapiService = {
   async makeCall(request: VapiCallRequest) {
+    const availability = getFeatureAvailability('vapi');
+    if (!availability.enabled) {
+      logger.warn('VAPI call skipped because the feature is disabled', {
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     const { data, error } = await apiClient.post('/functions/v1/vapi-call', {
       phone_number: request.phoneNumber,
-      assistant_id: request.assistantId || API_CONFIG.vapi.assistantId,
+      assistant_id: request.assistantId || availability.config.assistantId,
       context: {
         client_name: request.clientName,
         urgency: request.urgency || 'normal',
@@ -108,6 +172,14 @@ export const VapiService = {
 // Twilio SMS Service
 export const TwilioService = {
   async sendSms(request: TwilioSmsRequest) {
+    const availability = getFeatureAvailability('sms');
+    if (!availability.enabled) {
+      logger.warn('SMS sending skipped because the feature is disabled', {
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     const { data, error } = await apiClient.post('/functions/v1/send-sms', {
       to: request.to,
       message: request.message,
@@ -168,6 +240,15 @@ export const TwilioService = {
 // n8n Automation Service
 export const N8nService = {
   async triggerNewClientWorkflow(clientData: WebhookClientData) {
+    const availability = getFeatureAvailability('automation');
+    if (!availability.enabled) {
+      logger.warn('Automation workflow skipped', {
+        workflow: 'newClient',
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     return webhookUtils.triggerN8nWebhook('newClient', {
       event: 'client_created',
       client: clientData,
@@ -180,6 +261,15 @@ export const N8nService = {
   },
 
   async triggerEmergencyCallWorkflow(callData: WebhookCallData) {
+    const availability = getFeatureAvailability('automation');
+    if (!availability.enabled) {
+      logger.warn('Automation workflow skipped', {
+        workflow: 'emergencyCall',
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     return webhookUtils.triggerN8nWebhook('emergencyCall', {
       event: 'emergency_call',
       call: callData,
@@ -193,6 +283,15 @@ export const N8nService = {
   },
 
   async triggerInterventionCompletedWorkflow(interventionData: WebhookInterventionData) {
+    const availability = getFeatureAvailability('automation');
+    if (!availability.enabled) {
+      logger.warn('Automation workflow skipped', {
+        workflow: 'interventionCompleted',
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     return webhookUtils.triggerN8nWebhook('interventionCompleted', {
       event: 'intervention_completed',
       intervention: interventionData,
@@ -206,6 +305,15 @@ export const N8nService = {
   },
 
   async triggerFeedbackWorkflow(feedbackData: WebhookFeedbackData) {
+    const availability = getFeatureAvailability('automation');
+    if (!availability.enabled) {
+      logger.warn('Automation workflow skipped', {
+        workflow: 'feedback',
+        reason: availability.reason,
+      });
+      return { disabled: true as const, reason: availability.reason } satisfies DisabledFeatureResponse;
+    }
+
     return webhookUtils.triggerN8nWebhook('feedback', {
       event: 'customer_feedback',
       feedback: feedbackData,
@@ -280,11 +388,15 @@ export const SupportService = {
 // Google Maps Service for geolocation
 export const MapsService = {
   async geocodeAddress(address: string) {
-    const apiKey = API_CONFIG.maps.apiKey;
-    if (!apiKey) {
-      console.warn('Google Maps API key not configured');
-      return { lat: null, lng: null, error: 'API key not configured' };
+    const availability = getFeatureAvailability('maps');
+    if (!availability.enabled) {
+      logger.warn('Geocoding skipped because Google Maps is disabled', {
+        reason: availability.reason,
+      });
+      return { lat: null, lng: null, error: availability.reason };
     }
+
+    const apiKey = availability.config.apiKey;
 
     try {
       const response = await fetch(
@@ -306,10 +418,15 @@ export const MapsService = {
   },
 
   async getRouteDistance(origin: string, destination: string) {
-    const apiKey = API_CONFIG.maps.apiKey;
-    if (!apiKey) {
-      return { distance: null, duration: null, error: 'API key not configured' };
+    const availability = getFeatureAvailability('maps');
+    if (!availability.enabled) {
+      logger.warn('Route distance calculation skipped because Google Maps is disabled', {
+        reason: availability.reason,
+      });
+      return { distance: null, duration: null, error: availability.reason };
     }
+
+    const apiKey = availability.config.apiKey;
 
     try {
       const response = await fetch(
@@ -337,7 +454,15 @@ export const MapsService = {
   },
 
   generateMapUrl(address: string, zoom = 15) {
-    const apiKey = API_CONFIG.maps.apiKey;
+    const availability = getFeatureAvailability('maps');
+    if (!availability.enabled) {
+      logger.warn('Map URL generation skipped because Google Maps is disabled', {
+        reason: availability.reason,
+      });
+      return '';
+    }
+
+    const apiKey = availability.config.apiKey;
     const encodedAddress = encodeURIComponent(address);
     return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodedAddress}&zoom=${zoom}`;
   }

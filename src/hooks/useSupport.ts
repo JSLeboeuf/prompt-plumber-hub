@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/useToast';
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
 
 interface SupportTicket {
   id: string;
@@ -45,7 +45,8 @@ export const useSupport = () => {
       setTickets([]);
       setFaqItems([]);
     } catch (err) {
-      console.error('Erreur lors du chargement des données support:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Erreur lors du chargement des données support', normalizedError);
     } finally {
       setLoading(false);
     }
@@ -74,7 +75,8 @@ export const useSupport = () => {
         }
       });
     } catch (err) {
-      logger.error('Failed to log support chat message', err as Error);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to log support chat message', normalizedError);
     }
   }, [message]);
 
@@ -103,7 +105,8 @@ export const useSupport = () => {
       setPriority("normal");
 
     } catch (err) {
-      console.error('Erreur lors de l\'envoi:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Erreur lors de l\'envoi de la demande de support', normalizedError);
       error("Erreur", "Impossible d'envoyer la demande. Veuillez réessayer.");
     }
   }, [subject, detailedMessage, priority, success, error]);

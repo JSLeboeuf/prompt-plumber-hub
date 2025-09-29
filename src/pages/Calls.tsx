@@ -27,7 +27,11 @@ import { useEmergencyCalls } from "@/hooks/useProductionData";
 import { useToast } from "@/hooks/useToast";
 import { format } from "date-fns";
 import { CallsLoadingSkeleton } from "@/components/ui/loading-states";
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
+import { getServiceConfig } from '@/config/unified.api.config';
+
+const callsFlagValue = ((import.meta as unknown as { env?: Record<string, string | undefined> })?.env?.VITE_ENABLE_CALLS)
+  ?? ((globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.VITE_ENABLE_CALLS);
 
 export default function Calls() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +40,12 @@ export default function Calls() {
   
   const { calls, loading, updateCall } = useEmergencyCalls();
   const toast = useToast();
+  const vapiConfig = getServiceConfig('vapi');
+  const isCallsFeatureEnabled = callsFlagValue === 'true';
+  const isCallManagementAvailable = isCallsFeatureEnabled && vapiConfig.enabled;
+  const disabledReason = !isCallsFeatureEnabled
+    ? 'La file d\'appels est désactivée (VITE_ENABLE_CALLS=false).'
+    : 'Configurez VITE_VAPI_PUBLIC_KEY et activez VITE_ENABLE_VAPI pour gérer les appels.';
 
   // Handle taking a call
   const handleTakeCall = async (callId: string) => {
@@ -112,6 +122,27 @@ export default function Calls() {
     const matchesStatus = statusFilter === "tous" || call.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (!isCallManagementAvailable) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-muted-foreground">
+              <AlertTriangle className="h-5 w-5" />
+              Gestion des appels indisponible
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-muted-foreground">
+            <p>{disabledReason}</p>
+            <p className="text-sm">
+              Activez la fonctionnalité lorsque l\'API `/api/calls` est opérationnelle et que VAPI est correctement configuré.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return <CallsLoadingSkeleton />;

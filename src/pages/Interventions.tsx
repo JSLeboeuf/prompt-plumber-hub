@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInterventions } from "@/hooks/useInterventions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import logger from "@/lib/logger";
 
 export default function Interventions() {
   const [view, setView] = useState("kanban");
@@ -154,7 +155,8 @@ export default function Interventions() {
         scheduled_date: new Date().toISOString().split('T')[0]
       });
     } catch (err) {
-      console.error('Failed to create intervention:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to create intervention', normalizedError);
     }
   };
 

@@ -122,7 +122,7 @@ class ErrorBoundary extends Component<Props, State> {
       // Could also open email client or feedback form
       const subject = encodeURIComponent(`Erreur Application: ${this.state.error.code}`);
       const body = encodeURIComponent(`Une erreur s'est produite:\n\nCode: ${this.state.error.code}\nMessage: ${this.state.error.message}\n\nLes détails techniques ont été copiés dans le presse-papiers.`);
-      window.open(`mailto:support@example.com?subject=${subject}&body=${body}`);
+      window.open(`mailto:contact@autoscaleai.ca?subject=${subject}&body=${body}`);
     }
   };
 

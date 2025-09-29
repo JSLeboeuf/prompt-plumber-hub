@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/lib/logger';
 
 interface DashboardMetrics {
   totalCalls: number;
@@ -70,8 +71,9 @@ export const useUltraFastDashboard = () => {
       setUrgentCalls(urgentData || []);
 
     } catch (err) {
-      console.error('Dashboard data fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Erreur de chargement');
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Dashboard data fetch error', normalizedError);
+      setError(normalizedError.message);
     } finally {
       setLoading(false);
     }

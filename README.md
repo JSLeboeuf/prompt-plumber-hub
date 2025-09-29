@@ -86,6 +86,13 @@ npm install
 npm run dev
 ```
 
+## ✅ Production Checklist
+- **Front-end secrets**: copy `.env.local.example`, configure `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_VAPI_PUBLIC_KEY`, `VITE_VAPI_ASSISTANT_ID`, `VITE_TWILIO_ACCOUNT_SID`, `VITE_GOOGLE_MAPS_API_KEY`.
+- **Edge function secrets**: copy `supabase/.env.example`, provide `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPI_API_KEY`, and Twilio credentials.
+- **Health check**: `/functions/v1/health-check` should report `vapi.configured` based on `VAPI_API_KEY` and `twilio.configured` when all `TWILIO_*` variables are set.
+- **Feature flags**: toggle `VITE_ENABLE_VAPI`, `VITE_ENABLE_SMS`, `VITE_ENABLE_MAPS`, `VITE_ENABLE_AUTOMATION`, `VITE_ENABLE_CALLS` to enable integrations safely when keys exist.
+- **QA commands**: `npm run lint`, `npx tsc --noEmit`, `npm run build` (plus `npm run test` / `npm run test:e2e` when applicable).
+
 ## 🧪 QA Pipeline
 
 The project includes a comprehensive QA pipeline for validating code quality. Run these commands in order:

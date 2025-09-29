@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToastContext } from '@/components/providers/ToastProvider';
+import logger from '@/lib/logger';
+import { getServiceConfig } from '@/config/unified.api.config';
 
 interface Client {
   id?: string;
@@ -74,6 +76,19 @@ export const useClientActions = () => {
 
   const callClient = useCallback(async (clientId: string, phoneNumber: string) => {
     try {
+      const vapiConfig = getServiceConfig('vapi');
+      if (!vapiConfig.enabled) {
+        const reason = vapiConfig.publicKey
+          ? 'Les appels automatisés sont désactivés pour cette instance.'
+          : 'Clé publique VAPI manquante. Configurez VITE_VAPI_PUBLIC_KEY pour activer les appels.';
+        logger.warn('Client call skipped because VAPI is disabled', {
+          clientId,
+          reason,
+        });
+        showError('Fonctionnalité indisponible', reason);
+        return { success: false, data: null, error: reason };
+      }
+
       // Integration with VAPI service would go here
       const { data, error } = await supabase.functions.invoke('vapi-call', {
         body: {

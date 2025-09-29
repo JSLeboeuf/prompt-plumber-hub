@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/lib/logger';
 
 interface GdprConsent {
   analytics: boolean;
@@ -27,7 +28,8 @@ export const useGdprCompliance = () => {
       try {
         setConsent(JSON.parse(storedConsent));
       } catch (error) {
-        console.error('Failed to parse GDPR consent:', error);
+        const normalizedError = error instanceof Error ? error : new Error(String(error));
+        logger.error('Failed to parse GDPR consent', normalizedError);
       }
     }
   }, []);

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToastContext } from '@/components/providers/ToastProvider';
+import logger from '@/lib/logger';
 
 interface Client {
   id: string;
@@ -102,7 +103,8 @@ export const usePaginatedCRM = () => {
       if (error) throw error;
       setLeads(data || []);
     } catch (err) {
-      console.error('Error fetching leads:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error fetching leads', normalizedError);
     }
   }, []);
 

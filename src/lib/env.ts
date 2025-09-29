@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import logger from '@/lib/logger';
 
 /**
  * Environment variable validation schema
@@ -52,7 +53,7 @@ export function validateEnv(): Env {
 
       // Warn about missing optional configs
       if (!env.VITE_GOOGLE_MAPS_API_KEY) {
-        console.warn('⚠️ Google Maps API key not configured');
+        logger.warn('Google Maps API key not configured');
       }
     }
 
@@ -60,16 +61,18 @@ export function validateEnv(): Env {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const missingVars = error.errors.map(e => e.path.join('.')).join(', ');
-      console.error('❌ Environment validation failed:');
-      console.error(`Missing or invalid variables: ${missingVars}`);
-      console.error('\nRequired environment variables:');
-      console.error('- VITE_SUPABASE_URL');
-      console.error('- VITE_SUPABASE_PUBLISHABLE_KEY');
-      console.error('\nPlease check your .env file');
+      const baseContext = {
+        missingVars,
+        required: ['VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY'],
+      } as const;
 
-      // In development, show detailed error
       if (import.meta.env.DEV) {
-        console.error('\nDetailed errors:', error.errors);
+        logger.error('Environment validation failed', {
+          ...baseContext,
+          details: error.errors,
+        });
+      } else {
+        logger.error('Environment validation failed', baseContext);
       }
     }
     throw error;

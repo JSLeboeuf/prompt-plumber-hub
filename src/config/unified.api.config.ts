@@ -8,7 +8,7 @@
  * - Runtime validation and health checks
  */
 
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
 
 // Environment variable validation
 interface EnvironmentConfig {
@@ -234,7 +234,7 @@ function createUnifiedConfig(): UnifiedAPIConfig {
     
     api: {
       baseUrl: env.API_BASE_URL,
-      timeout: 30000,
+      timeout: 10000,
       retries: 3,
       enableLogging: env.NODE_ENV === 'development',
     },
@@ -281,7 +281,7 @@ function createUnifiedConfig(): UnifiedAPIConfig {
         'X-Requested-With': 'XMLHttpRequest',
         'X-Client-Version': '1.0.0',
       },
-      timeout: 30000,
+      timeout: 10000,
       retries: 3,
       cacheTimeout: 5 * 60 * 1000, // 5 minutes
     },

@@ -1,4 +1,5 @@
 import { env, isFeatureEnabled, getApiConfig } from '@/lib/env';
+import logger from '@/lib/logger';
 
 /**
  * Secure API Configuration
@@ -62,7 +63,7 @@ export const apiConfig = {
   },
 
   // Request timeout
-  timeout: 30000,
+  timeout: 10000,
 
   // Retry configuration
   retry: {
@@ -130,13 +131,13 @@ export function validateResponse(response: unknown): boolean {
 
   // Check for potential XSS
   if (/<script|javascript:/i.test(jsonString)) {
-    console.error('Potential XSS detected in API response');
+    logger.error('Potential XSS detected in API response', { preview: jsonString.slice(0, 200) });
     return false;
   }
 
   // Check for SQL injection patterns
   if (/(\b(union|select|insert|update|delete|drop)\b.*\b(from|where|table)\b)/i.test(jsonString)) {
-    console.error('Potential SQL injection pattern in response');
+    logger.error('Potential SQL injection pattern in response', { preview: jsonString.slice(0, 200) });
     return false;
   }
 

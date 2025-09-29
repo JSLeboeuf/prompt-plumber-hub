@@ -20,7 +20,15 @@ export interface Client {
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/lib/logger';
+import { getServiceConfig } from '@/config/unified.api.config';
 import { useInterventions } from './useInterventions';
+
+const vapiServiceConfig = getServiceConfig('vapi');
+const isVapiFeatureEnabled = vapiServiceConfig.enabled;
+const vapiDisabledMessage = isVapiFeatureEnabled
+  ? null
+  : 'La fonctionnalité d\'appels VAPI est désactivée ou mal configurée. Configurez VITE_ENABLE_VAPI et VITE_VAPI_PUBLIC_KEY.';
 
 export const useEmergencyCalls = (): {
   calls: EmergencyCall[];
@@ -37,6 +45,15 @@ export const useEmergencyCalls = (): {
   const fetchCalls = useCallback(async () => {
     try {
       setLoading(true);
+      if (!isVapiFeatureEnabled) {
+        if (vapiDisabledMessage) {
+          setError(vapiDisabledMessage);
+        }
+        setCalls([]);
+        logger.warn('Skipping call fetch because VAPI is disabled or not configured');
+        return;
+      }
+
       setError(null);
 
       const { data, error: fetchError } = await supabase
@@ -50,13 +67,22 @@ export const useEmergencyCalls = (): {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
       setError(errorMessage);
-      console.error('Error fetching calls:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error fetching calls', normalizedError);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const createCall = useCallback(async (payload: any = {}) => {
+    if (!isVapiFeatureEnabled) {
+      if (vapiDisabledMessage) {
+        setError(vapiDisabledMessage);
+      }
+      logger.warn('Skipping call creation because VAPI is disabled or not configured');
+      return;
+    }
+
     try {
       const { error: insertError } = await supabase
         .from('vapi_calls')
@@ -71,12 +97,21 @@ export const useEmergencyCalls = (): {
       if (insertError) throw insertError;
       await fetchCalls();
     } catch (err) {
-      console.error('Error creating call:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error creating call', normalizedError);
       throw err;
     }
   }, [fetchCalls]);
 
   const updateCall = useCallback(async (id: string, updates: any = {}) => {
+    if (!isVapiFeatureEnabled) {
+      if (vapiDisabledMessage) {
+        setError(vapiDisabledMessage);
+      }
+      logger.warn('Skipping call update because VAPI is disabled or not configured', { id });
+      return;
+    }
+
     try {
       const { error: updateError } = await supabase
         .from('vapi_calls')
@@ -89,7 +124,8 @@ export const useEmergencyCalls = (): {
       if (updateError) throw updateError;
       await fetchCalls();
     } catch (err) {
-      console.error('Error updating call:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error updating call', { error: normalizedError, id, updates });
       throw err;
     }
   }, [fetchCalls]);
@@ -134,7 +170,8 @@ export const useClients = (): {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
       setError(errorMessage);
-      console.error('Error fetching clients:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error fetching clients', normalizedError);
     } finally {
       setLoading(false);
     }

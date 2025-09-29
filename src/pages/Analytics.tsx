@@ -83,26 +83,7 @@ export default function Analytics() {
     }
   }, [selectedPeriod, showError]);
 
-  // Load analytics on mount and period change
-  useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
-
-  // Check permissions
-  if (!canAccess('analytics', 'read')) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
-          <p className="body text-muted-foreground">
-            Vous n'avez pas les permissions pour accéder aux analytiques
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Optimized handlers
+  // Optimized handlers - declare ALL hooks before any conditional returns
   const handlePeriodChange = useCallback(async (period: string) => {
     setSelectedPeriod(period);
     await fetchAnalytics(period);
@@ -117,7 +98,7 @@ export default function Analytics() {
         fetchClients()
       ]);
       success("Données actualisées", "Les métriques ont été mises à jour");
-    } catch (error) {
+    } catch {
       // Error handling is done in individual functions
     } finally {
       setIsRefreshing(false);
@@ -142,7 +123,7 @@ export default function Analytics() {
             `${analytics?.successRate || 0}%`,
             `${analytics?.avgResponseTime || 0}min`
           ]
-        ].map(row => 
+        ].map(row =>
           row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
         ).join('\n');
 
@@ -164,7 +145,7 @@ export default function Analytics() {
     } finally {
       setIsExporting(false);
     }
-  }, [selectedPeriod, analytics, calls, clients, success, showError]);
+  }, [selectedPeriod, analytics, calls, success, showError]);
 
   // Real-time metrics calculation with proper error handling
   const realTimeMetrics = useMemo(() => {
@@ -173,11 +154,11 @@ export default function Analytics() {
       const activeCalls = calls?.filter(c => c.status === 'active')?.length || 0;
       const completedCalls = calls?.filter(c => c.status === 'completed')?.length || 0;
       const urgentCalls = calls?.filter(c => c.priority === 'P1')?.length || 0;
-      
+
       const totalDuration = calls?.reduce((acc, call) => acc + (call.duration || 0), 0) || 0;
       const avgDuration = safeCallsLength > 0 ? Math.round(totalDuration / safeCallsLength) : 0;
-      
-      const successRate = safeCallsLength > 0 
+
+      const successRate = safeCallsLength > 0
         ? Math.round((completedCalls / safeCallsLength) * 100)
         : 0;
 
@@ -189,7 +170,7 @@ export default function Analytics() {
         avgDuration,
         successRate
       };
-    } catch (error) {
+    } catch {
       // Return safe defaults if calculation fails
       return {
         totalCalls: 0,
@@ -214,7 +195,7 @@ export default function Analytics() {
     },
     {
       title: "Interventions",
-      value: analytics?.completedCalls || realTimeMetrics.completedCalls, 
+      value: analytics?.completedCalls || realTimeMetrics.completedCalls,
       evolution: "+8%",
       icon: Wrench,
       color: "text-primary",
@@ -241,9 +222,9 @@ export default function Analytics() {
   // Filter calls based on search query
   const filteredCalls = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return calls?.slice(0, 10) || [];
-    
+
     const query = debouncedSearchQuery.toLowerCase();
-    return calls?.filter(call => 
+    return calls?.filter(call =>
       call.customer_name?.toLowerCase().includes(query) ||
       call.phone_number?.toLowerCase().includes(query) ||
       call.call_id?.toLowerCase().includes(query) ||
@@ -256,6 +237,25 @@ export default function Analytics() {
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
+
+  // Load analytics on mount and period change
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  // Check permissions - AFTER all hooks are declared
+  if (!canAccess('analytics', 'read')) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="title-md text-muted-foreground mb-2">Accès non autorisé</h3>
+          <p className="body text-muted-foreground">
+            Vous n'avez pas les permissions pour accéder aux analytiques
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (analyticsLoading && callsLoading) {

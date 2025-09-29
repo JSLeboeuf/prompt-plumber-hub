@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
 import type { SupabaseQuery } from '@/types/api.types';
 
 export interface PaginatedResult<T> {
@@ -12,6 +12,8 @@ export interface ServiceResult<T> {
   success: boolean;
   data?: T;
   error?: Error;
+  disabled?: boolean;
+  reason?: string;
   meta: {
     action: string;
     entity: string;
@@ -170,6 +172,24 @@ export abstract class BaseService {
     return {
       valid: errors.length === 0,
       errors,
+    };
+  }
+
+  protected createDisabledResult<T>(action: string, entity: string, reason: string): ServiceResult<T> {
+    logger.warn(`${action} skipped: feature disabled`, {
+      entity,
+      reason,
+    });
+
+    return {
+      success: false,
+      disabled: true,
+      reason,
+      meta: {
+        action,
+        entity,
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 

@@ -55,7 +55,7 @@ serve(async (req) => {
       },
       {
         name: 'vapi',
-        env_vars: ['VAPI_SERVER_SECRET']
+        env_vars: ['VAPI_API_KEY']
       }
     ];
 

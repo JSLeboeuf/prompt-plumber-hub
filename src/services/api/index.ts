@@ -75,21 +75,33 @@ import {
   automationService,
   mapsService
 } from './ServiceLayer';
+import type { ServiceResult } from './ServiceLayer';
+
+type DisabledFeatureResponse = {
+  disabled: true;
+  reason?: string | null;
+};
+
+function unwrapLegacyResult<T>(result: ServiceResult<T>): T | DisabledFeatureResponse {
+  if (result.disabled) {
+    return { disabled: true, reason: result.reason ?? null };
+  }
+
+  if (!result.success) {
+    throw result.error;
+  }
+
+  return result.data as T;
+}
 
 /**
  * @deprecated Use services.vapi instead
  */
 export const VAPIService = {
   startCall: (phoneNumber: string, context: Record<string, unknown>) =>
-    vapiService.startCall(phoneNumber, context).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    }),
+    vapiService.startCall(phoneNumber, context).then(unwrapLegacyResult),
   getCallTranscript: (callId: string) =>
-    vapiService.getCallTranscript(callId).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    })
+    vapiService.getCallTranscript(callId).then(unwrapLegacyResult)
 };
 
 /**
@@ -97,15 +109,9 @@ export const VAPIService = {
  */
 export const SMSService = {
   sendSMS: (to: string, message: string, priority?: 'normal' | 'urgent') =>
-    smsService.sendSMS(to, message, priority).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    }),
+    smsService.sendSMS(to, message, priority).then(unwrapLegacyResult),
   sendBulkSMS: (recipients: string[], message: string) =>
-    smsService.sendBulkSMS(recipients, message).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    })
+    smsService.sendBulkSMS(recipients, message).then(unwrapLegacyResult)
 };
 
 /**
@@ -113,15 +119,9 @@ export const SMSService = {
  */
 export const AutomationService = {
   triggerWorkflow: (workflowName: string, data: Record<string, unknown>) =>
-    automationService.triggerWorkflow(workflowName, data).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    }),
+    automationService.triggerWorkflow(workflowName, data).then(unwrapLegacyResult),
   sendFeedback: (feedback: Record<string, unknown>) =>
-    automationService.sendFeedback(feedback).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    })
+    automationService.sendFeedback(feedback).then(unwrapLegacyResult)
 };
 
 /**
@@ -129,15 +129,9 @@ export const AutomationService = {
  */
 export const MapsService = {
   geocodeAddress: (address: string) =>
-    mapsService.geocodeAddress(address).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    }),
+    mapsService.geocodeAddress(address).then(unwrapLegacyResult),
   optimizeRoute: (waypoints: Array<{ lat: number; lng: number }>) =>
-    mapsService.optimizeRoute(waypoints).then(result => {
-      if (!result.success) throw result.error;
-      return result.data;
-    })
+    mapsService.optimizeRoute(waypoints).then(unwrapLegacyResult)
 };
 
 /**

@@ -10,8 +10,10 @@
 
 import { BaseService, type ServiceResult, type PaginatedResult, type QueryOptions } from '@/services/BaseService';
 import { unifiedAPI } from './UnifiedAPIClient';
-import { logger } from '@/lib/logger';
+import logger from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { getServiceConfig } from '@/config/unified.api.config';
+import type { UnifiedAPIConfig } from '@/config/unified.api.config';
 import type {
   CallData,
   LeadData,
@@ -85,6 +87,61 @@ interface RouteOptimizationResponse {
 
 type VAPICallRow = Database['public']['Tables']['vapi_calls']['Row'];
 type LeadRow = Database['public']['Tables']['leads']['Row'];
+
+type ServiceKey = keyof UnifiedAPIConfig['services'];
+
+function getFeatureStatus<T extends ServiceKey>(service: T) {
+  const config = getServiceConfig(service);
+
+  if (config.enabled) {
+    return {
+      enabled: true as const,
+      reason: null as null,
+      config,
+    };
+  }
+
+  let reason = 'Feature disabled in configuration';
+
+  switch (service) {
+    case 'vapi': {
+      const vapiConfig = config as UnifiedAPIConfig['services']['vapi'];
+      reason = vapiConfig.publicKey
+        ? 'VAPI feature disabled via VITE_ENABLE_VAPI'
+        : 'Missing VAPI public key';
+      break;
+    }
+    case 'sms': {
+      const smsConfig = config as UnifiedAPIConfig['services']['sms'];
+      reason = smsConfig.accountSid
+        ? 'SMS feature disabled via VITE_ENABLE_SMS'
+        : 'Missing Twilio account SID';
+      break;
+    }
+    case 'maps': {
+      const mapsConfig = config as UnifiedAPIConfig['services']['maps'];
+      reason = mapsConfig.apiKey
+        ? 'Maps feature disabled via VITE_ENABLE_MAPS'
+        : 'Missing Google Maps API key';
+      break;
+    }
+    case 'automation': {
+      const automationConfig = config as UnifiedAPIConfig['services']['automation'];
+      reason = automationConfig.baseUrl
+        ? 'Automation feature disabled via VITE_ENABLE_AUTOMATION'
+        : 'Missing n8n base URL';
+      break;
+    }
+    default:
+      reason = 'Feature disabled or unavailable';
+  }
+
+  return {
+    enabled: false as const,
+    reason,
+    config,
+  };
+}
 
 // Service Configuration
 export interface ServiceConfig {
@@ -172,6 +229,11 @@ export class VAPIService extends UnifiedBaseService {
    * Start a new call
    */
   async startCall(phoneNumber: string, context: CallContext): Promise<ServiceResult<VAPICallResponse>> {
+    const featureStatus = getFeatureStatus('vapi');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('startCall', 'vapi_call', featureStatus.reason ?? 'VAPI service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(
@@ -248,6 +310,11 @@ export class SMSService extends UnifiedBaseService {
     message: string,
     priority: 'normal' | 'urgent' = 'normal'
   ): Promise<ServiceResult<SMSResponse>> {
+    const featureStatus = getFeatureStatus('sms');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('sendSMS', 'sms', featureStatus.reason ?? 'SMS service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(
@@ -279,6 +346,11 @@ export class SMSService extends UnifiedBaseService {
    * Send bulk SMS
    */
   async sendBulkSMS(recipients: string[], message: string): Promise<ServiceResult<BulkSMSResponse>> {
+    const featureStatus = getFeatureStatus('sms');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('sendBulkSMS', 'bulk_sms', featureStatus.reason ?? 'SMS service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(
@@ -321,6 +393,11 @@ export class AutomationService extends UnifiedBaseService {
     workflowName: string,
     data: WebhookClientData | WebhookCallData | WebhookInterventionData | WebhookFeedbackData
   ): Promise<ServiceResult<WorkflowResponse>> {
+    const featureStatus = getFeatureStatus('automation');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('triggerWorkflow', 'automation', featureStatus.reason ?? 'Automation service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(
@@ -377,6 +454,11 @@ export class MapsService extends UnifiedBaseService {
     formatted_address: string;
     placeId?: string;
   }>> {
+    const featureStatus = getFeatureStatus('maps');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('geocodeAddress', 'maps', featureStatus.reason ?? 'Maps service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(
@@ -420,6 +502,11 @@ export class MapsService extends UnifiedBaseService {
    * Optimize route
    */
   async optimizeRoute(waypoints: Array<{ lat: number; lng: number }>): Promise<ServiceResult<RouteOptimizationResponse>> {
+    const featureStatus = getFeatureStatus('maps');
+    if (!featureStatus.enabled) {
+      return this.createDisabledResult('optimizeRoute', 'maps', featureStatus.reason ?? 'Maps service disabled');
+    }
+
     return this.executeOperation(
       async () => {
         return this.executeWithFallback(

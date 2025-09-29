@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/lib/logger';
 
 interface Intervention {
   id: string;
@@ -38,7 +39,8 @@ export const useInterventions = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
       setError(errorMessage);
-      console.error('Error fetching interventions:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error fetching interventions', normalizedError);
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,8 @@ export const useInterventions = () => {
       if (insertError) throw insertError;
       await fetchInterventions();
     } catch (err) {
-      console.error('Error creating intervention:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error creating intervention', normalizedError);
       throw err;
     }
   }, [fetchInterventions]);
@@ -77,7 +80,8 @@ export const useInterventions = () => {
       if (updateError) throw updateError;
       await fetchInterventions();
     } catch (err) {
-      console.error('Error updating intervention:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error updating intervention', { error: normalizedError, id, updates });
       throw err;
     }
   }, [fetchInterventions]);
@@ -92,7 +96,8 @@ export const useInterventions = () => {
       if (deleteError) throw deleteError;
       await fetchInterventions();
     } catch (err) {
-      console.error('Error deleting intervention:', err);
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error deleting intervention', { error: normalizedError, id });
       throw err;
     }
   }, [fetchInterventions]);
