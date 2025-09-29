@@ -19,7 +19,7 @@ import { logger } from '@/lib/logger';
 
 export function CRMDashboard() {
   const [activeView, setActiveView] = useState<'dashboard' | 'clients' | 'sms' | 'interventions' | 'alerts'>('dashboard');
-  const [_realtimeAlerts, setRealtimeAlerts] = useState<InternalAlert[]>([]);
+  const [, setRealtimeAlerts] = useState<InternalAlert[]>([]);
 
   // Fetch statistics
   const { data: stats } = useQuery({
@@ -29,21 +29,21 @@ export function CRMDashboard() {
   });
 
   // Fetch active alerts
-  const { data: alerts = [] as any[], refetch: refetchAlerts } = useQuery({
+  const { data: alerts = [], refetch: refetchAlerts } = useQuery({
     queryKey: ['active-alerts'],
     queryFn: () => alertService.getActiveAlerts(),
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
   // Fetch today's interventions
-  const { data: todayInterventions = [] as any[] } = useQuery({
+  const { data: todayInterventions = [] } = useQuery({
     queryKey: ['today-interventions'],
     queryFn: () => interventionService.getTodayInterventions(),
     refetchInterval: 60000
   });
 
   // Fetch recent SMS
-  const { data: recentSMS = [] as any[] } = useQuery({
+  const { data: recentSMS = [] } = useQuery({
     queryKey: ['recent-sms'],
     queryFn: () => smsService.getSMSMessages({ 
       dateFrom: new Date().toISOString().split('T')[0] || ""
@@ -54,8 +54,8 @@ export function CRMDashboard() {
   // Setup real-time subscriptions
   useEffect(() => {
     // Subscribe to alerts
-    const alertChannel = realtimeService.subscribeToAlerts((payload: any) => {
-      if (payload.eventType === 'INSERT') {
+    const alertChannel = realtimeService.subscribeToAlerts((payload: { eventType: string; new?: unknown }) => {
+      if (payload.eventType === 'INSERT' && payload.new) {
         const newAlert = payload.new as InternalAlert;
         setRealtimeAlerts(prev => [newAlert, ...prev]);
         toast.error(`🚨 Nouvelle alerte ${newAlert.priority}!`, {
@@ -67,7 +67,7 @@ export function CRMDashboard() {
     });
 
     // Subscribe to SMS
-    const smsChannel = realtimeService.subscribeToSMS((payload: any) => {
+    const smsChannel = realtimeService.subscribeToSMS((payload: { eventType: string }) => {
       if (payload.eventType === 'INSERT') {
         toast.success('📱 SMS envoyé', {
           description: 'Un nouveau SMS a été envoyé à l\'équipe'
@@ -76,11 +76,14 @@ export function CRMDashboard() {
     });
 
     // Subscribe to interventions
-    const interventionChannel = realtimeService.subscribeToInterventions((payload: any) => {
-      if (payload.eventType === 'UPDATE' && payload.new.status === 'completed') {
-        toast.success('✅ Intervention complétée', {
-          description: `Service complété pour ${payload.new.client_name}`
-        });
+    const interventionChannel = realtimeService.subscribeToInterventions((payload: { eventType: string; new?: unknown }) => {
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        const intervention = payload.new as { status: string; client_name: string };
+        if (intervention.status === 'completed') {
+          toast.success('✅ Intervention complétée', {
+            description: `Service complété pour ${intervention.client_name}`
+          });
+        }
       }
     });
 
@@ -156,8 +159,7 @@ export function CRMDashboard() {
             return (
               <button
                 key={tab.id}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                onClick={() => setActiveView(tab.id as any)}
+                onClick={() => setActiveView(tab.id as typeof activeView)}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors relative",
                   activeView === tab.id 
@@ -227,21 +229,21 @@ export function CRMDashboard() {
                   </h2>
                 </div>
                 <div className="divide-y max-h-64 overflow-y-auto">
-                  {alerts.slice(0, 5).map((alert) => (
+                  {Array.isArray(alerts) && alerts.slice(0, 5).map((alert: Record<string, unknown>) => (
                     <AlertItem 
-                      key={alert.id} 
+                      key={alert.id as string} 
                       alert={{
-                        id: alert.id,
-                        type: (alert as any).type || 'system',
-                        title: alert.title,
-                        message: alert.message || 'Aucun message',
-                        severity: (alert as any).severity || 'medium',
-                        timestamp: (alert as any).timestamp || new Date().toISOString(),
-                        priority: (alert as any).priority,
-                        client_name: (alert as any).client_name,
-                        client_phone: (alert as any).client_phone,
-                        minutes_since_created: (alert as any).minutes_since_created,
-                        status: (alert as any).status
+                        id: alert.id as string,
+                        type: (alert.type as string) || 'system',
+                        title: (alert.message as string) || 'Alerte système',
+                        message: (alert.message as string) || 'Aucun message',
+                        severity: (alert.priority as 'low' | 'medium' | 'high' | 'critical') || 'medium',
+                        timestamp: (alert.created_at as string) || new Date().toISOString(),
+                        priority: (alert.priority as string) || 'normal',
+                        client_name: '',
+                        client_phone: '',
+                        minutes_since_created: 0,
+                        status: (alert.acknowledged ? 'acknowledged' : 'pending') as string
                       }}
                       onAcknowledge={handleAcknowledgeAlert}
                       onResolve={handleResolveAlert}
@@ -258,13 +260,13 @@ export function CRMDashboard() {
                   <h2 className="text-lg font-semibold">Interventions du jour</h2>
                 </div>
                 <div className="divide-y max-h-96 overflow-y-auto">
-                  {todayInterventions.length === 0 ? (
+                  {!Array.isArray(todayInterventions) || todayInterventions.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
                       Aucune intervention prévue aujourd'hui
                     </div>
                   ) : (
-                    todayInterventions.map((intervention) => (
-                      <InterventionItem key={intervention.id} intervention={intervention} />
+                    todayInterventions.map((intervention: Record<string, unknown>) => (
+                      <InterventionItem key={intervention.id as string} intervention={intervention as unknown as Intervention} />
                     ))
                   )}
                 </div>

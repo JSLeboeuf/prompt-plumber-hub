@@ -34,6 +34,7 @@ import { SearchInput } from "@/components/analytics/SearchInput";
 
 import { DashboardMetrics } from "@/types/dashboard";
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export default function Analytics() {
   const { canAccess } = useAuth();
@@ -98,8 +99,9 @@ export default function Analytics() {
         fetchClients()
       ]);
       success("Données actualisées", "Les métriques ont été mises à jour");
-    } catch {
+    } catch (refreshError) {
       // Error handling is done in individual functions
+      logger.warn('Refresh failed', { error: refreshError instanceof Error ? refreshError.message : 'Unknown refresh error' });
     } finally {
       setIsRefreshing(false);
     }
@@ -139,10 +141,10 @@ export default function Analytics() {
       }
 
       success("Export réussi", `Rapport ${format.toUpperCase()} généré avec succès`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur d\'export';
-      showError("Erreur d'export", `Impossible de générer le rapport: ${errorMessage}`);
-    } finally {
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Erreur d\'export';
+    showError("Erreur d'export", `Impossible de générer le rapport: ${errorMessage}`);
+  } finally {
       setIsExporting(false);
     }
   }, [selectedPeriod, analytics, calls, success, showError]);
@@ -170,8 +172,9 @@ export default function Analytics() {
         avgDuration,
         successRate
       };
-    } catch {
+    } catch (calcError) {
       // Return safe defaults if calculation fails
+      logger.warn('Metrics calculation failed', { error: calcError instanceof Error ? calcError.message : 'Unknown calculation error' });
       return {
         totalCalls: 0,
         activeCalls: 0,

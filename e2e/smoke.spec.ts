@@ -177,9 +177,9 @@ test.describe('Legacy Integration Smoke Tests', () => {
       const bodyContent = page.locator('body');
       await expect(bodyContent).toBeVisible();
 
-      // Look for error message or redirect to valid page
-      const pageContent = await page.textContent('body');
-      expect(pageContent).toBeTruthy();
+    // Look for error message or redirect to valid page
+    const hasContent = await page.locator('body *').count() > 0;
+    expect(hasContent).toBeTruthy();
     }
   });
 });
