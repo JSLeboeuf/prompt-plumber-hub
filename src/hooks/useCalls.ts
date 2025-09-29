@@ -39,7 +39,7 @@ export function useActiveCalls() {
     enabled: callsFeatureEnabled,
     placeholderData: [],
     refetchInterval: callsFeatureEnabled ? 5000 : false,
-    meta: callsFeatureEnabled ? undefined : { disabledReason: callsFeatureDisabledReason },
+    meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/calls/active");
       return response.json();
@@ -54,7 +54,7 @@ export function useRecentCalls(limit?: number) {
     queryKey,
     enabled: callsFeatureEnabled,
     placeholderData: [],
-    meta: callsFeatureEnabled ? undefined : { disabledReason: callsFeatureDisabledReason },
+    meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const endpoint = limit ? `/api/calls/recent?limit=${limit}` : '/api/calls/recent';
       const response = await apiRequest("GET", endpoint);
@@ -67,7 +67,7 @@ export function useCall(id: string) {
   return useQuery<Call>({
     queryKey: ["/api/calls", id],
     enabled: callsFeatureEnabled && !!id,
-    meta: callsFeatureEnabled ? undefined : { disabledReason: callsFeatureDisabledReason },
+    meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/calls/${id}`);
       return response.json();

@@ -41,7 +41,7 @@ export const useCompliance = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setGdprRequests(data || []);
+      setGdprRequests((data || []).map(item => ({ ...item, type: item.request_type || 'unknown' })));
     } catch (error) {
       logger.error('Error fetching GDPR requests', error as Error);
       setGdprRequests([]);
