@@ -23,7 +23,11 @@ export function useCalls(filters?: CallFilters) {
   return useQuery<Call[]>({
     queryKey,
     enabled: callsFeatureEnabled,
-    placeholderData: [],
+    placeholderData: (previousData) => previousData,
+    staleTime: 30000, // 30s - données temps réel
+    gcTime: 300000, // 5min en cache
+    refetchOnWindowFocus: false,
+    refetchInterval: 60000, // Rafraîchit toutes les minutes
     meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const endpoint = searchSuffix ? `/api/calls?${searchSuffix}` : `/api/calls`;
@@ -53,7 +57,10 @@ export function useRecentCalls(limit?: number) {
   return useQuery<Call[]>({
     queryKey,
     enabled: callsFeatureEnabled,
-    placeholderData: [],
+    placeholderData: (previousData) => previousData,
+    staleTime: 30000, // 30s - données récentes
+    gcTime: 180000, // 3min en cache
+    refetchOnWindowFocus: false,
     meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const endpoint = limit ? `/api/calls/recent?limit=${limit}` : '/api/calls/recent';
@@ -67,6 +74,8 @@ export function useCall(id: string) {
   return useQuery<Call>({
     queryKey: ["/api/calls", id],
     enabled: callsFeatureEnabled && !!id,
+    staleTime: 60000, // 1min - détails d'appel
+    gcTime: 600000, // 10min en cache
     meta: callsFeatureEnabled ? {} : { disabledReason: callsFeatureDisabledReason },
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/calls/${id}`);
